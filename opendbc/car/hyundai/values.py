@@ -36,7 +36,7 @@ class CarControllerParams:
 
     # To determine the limit for your car, find the maximum value that the stock LKAS will request.
     # If the max stock LKAS request is <384, add your car to this list.
-    elif CP.carFingerprint in (CAR.GENESIS_G80, CAR.HYUNDAI_ELANTRA, CAR.HYUNDAI_ELANTRA_GT_I30, CAR.HYUNDAI_IONIQ,
+    elif CP.carFingerprint in (CAR.GENESIS_G80, CAR.GENESIS_G80_ELECTRIFIED, CAR.HYUNDAI_ELANTRA, CAR.HYUNDAI_ELANTRA_GT_I30, CAR.HYUNDAI_IONIQ,
                                CAR.HYUNDAI_IONIQ_EV_LTD, CAR.HYUNDAI_SANTA_FE_PHEV_2022, CAR.HYUNDAI_SONATA_LF, CAR.KIA_FORTE, CAR.KIA_NIRO_PHEV,
                                CAR.KIA_OPTIMA_H, CAR.KIA_OPTIMA_H_G4_FL, CAR.KIA_SORENTO):
       self.STEER_MAX = 255
@@ -595,6 +595,11 @@ class CAR(Platforms):
     [HyundaiCarDocs("Genesis G80 2018-19", "All", car_parts=CarParts.common([CarHarness.hyundai_h]))],
     CarSpecs(mass=2060, wheelbase=3.01, steerRatio=16.5),
     flags=HyundaiFlags.LEGACY,
+  )
+  GENESIS_G80_ELECTRIFIED = HyundaiPlatformConfig(
+    [HyundaiCarDocs("Genesis G80 2023 Electrified", "All", car_parts=CarParts.common([CarHarness.hyundai_k]))],
+    CarSpecs(mass=2060, wheelbase=3.01, steerRatio=16.5),
+    flags=HyundaiFlags.EV,
   )
   GENESIS_G80_2ND_GEN_FL = HyundaiCanFDPlatformConfig(
     [HyundaiCarDocs("Genesis G80 (2.5T Advanced Trim, with HDA II) 2024", "Highway Driving Assist II", car_parts=CarParts.common([CarHarness.hyundai_p]))],
