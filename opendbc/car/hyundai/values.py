@@ -116,8 +116,10 @@ class HyundaiFlags(IntFlag):
 
   # Static flags
 
-  # If 0x500 is present on bus 1 it probably has a Mando radar outputting radar points.
-  # If no points are outputted by default it might be possible to turn it on using  selfdrive/debug/hyundai_enable_radar_points.py
+  # If 0x500 is present on bus 1 it has a Mando radar. The radar outputs 0x500 as a heartbeat
+  # in stock ACC mode, but the full track range (0x500-0x51F) requires a UDS configuration write
+  # to enable. radarUnavailable is set by checking for 0x51F (the trigger message) rather than
+  # 0x500, so that _initialize_radar_tracks() runs whenever tracks are not yet active.
   MANDO_RADAR = 2 ** 12
   CANFD = 2 ** 13
 
