@@ -38,10 +38,10 @@ def generate():
         f'CM_ BO_ {addr} "Camera-object companion in a three-message slot; not an independent object.";\n'
       )
   # Five packed pairs provide auxiliary records for the ten geometry slots.
-  # Independent capture check: record k is nonzero iff geometry slot k is valid.
+  # Independent capture check: record k is nonzero if and only if geometry slot k is valid.
   for addr in range(0x25A, 0x25F):
     parts.append(f"\nBO_ {addr} CAMERA_OBJECT_AUX_{addr:x}: 8 CAMERA\n")
     parts.append(' SG_ OBJECT_1_AUX_RAW : 0|32@1+ (1,0) [0|4294967295] "raw" XXX\n')
     parts.append(' SG_ OBJECT_2_AUX_RAW : 32|32@1+ (1,0) [0|4294967295] "raw" XXX\n')
-    parts.append(f'CM_ BO_ {addr} "Per-object auxiliary pair; nonzero iff the corresponding A geometry ID is nonzero in all checked cycles.";\n')
+    parts.append(f'CM_ BO_ {addr} "Per-object auxiliary pair; nonzero if and only if the corresponding A geometry ID is nonzero in all checked cycles.";\n')
   return {"hyundai_radar_238_255.dbc": "".join(parts)}
