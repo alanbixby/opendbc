@@ -310,6 +310,7 @@ struct RadarData @0x888ad6581cf0aacb {
     endAddress @1 :UInt16;
     bus @2 :UInt8;
     trackCount @3 :UInt16;
+    sourceKind @4 :UInt8;  # 0 = radar, 1 = camera
   }
 
   struct Error {

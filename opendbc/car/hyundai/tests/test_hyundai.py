@@ -9,7 +9,7 @@ from opendbc.car.structs import CarParams, CarParamsSP
 from opendbc.car.fw_versions import build_fw_dict
 from opendbc.car.hyundai.interface import CarInterface
 from opendbc.car.hyundai.hyundaicanfd import CanBus
-from opendbc.car.hyundai.radar_interface import HYUNDAI_RADAR_TRACK_SPECS, RADAR_210_21F, RADAR_235_248, RADAR_3A5_3C4, \
+from opendbc.car.hyundai.radar_interface import HYUNDAI_RADAR_TRACK_SPECS, RADAR_180_1B9, RADAR_210_21F, RADAR_235_248, RADAR_3A5_3C4, \
                                                 RADAR_500_53F, RADAR_602_617, RADAR_238_255, RadarInterface, get_detected_radar_tracks, \
                                                 is_radar_track_valid
 from opendbc.car.hyundai.values import CAMERA_SCC_CAR, CANFD_CAR, CAN_GEARS, CAR, CHECKSUM, DATE_FW_ECUS, \
@@ -50,8 +50,8 @@ CANFD_EXPECTED_ECUS = {Ecu.fwdCamera, Ecu.fwdRadar}
 
 
 def add_radar_range(fingerprint, radar_spec, bus, missing_addr=None, end_addr=None):
-  for addr in range(radar_spec.start_addr, (end_addr or radar_spec.end_addr) + 1):
-    if addr != missing_addr:
+  for addr in radar_spec.address_range:
+    if addr != missing_addr and addr <= (end_addr or radar_spec.end_addr):
       fingerprint[bus][addr] = radar_spec.message_size
 
 
@@ -68,6 +68,7 @@ def get_radar_parser(RI, radar_spec, bus):
 class TestHyundaiFingerprint(unittest.TestCase):
   def test_radar_track_frequencies(self):
     assert {spec.name: spec.frequency for spec in HYUNDAI_RADAR_TRACK_SPECS} == {
+      "RADAR_180_1B9": 33,
       "RADAR_500_53F": 20,
       "RADAR_210_21F": 20,
       "RADAR_235_248": 33,
@@ -78,6 +79,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
 
   def test_radar_track_message_sizes(self):
     assert {spec.name: spec.message_size for spec in HYUNDAI_RADAR_TRACK_SPECS} == {
+      "RADAR_180_1B9": 32,
       "RADAR_500_53F": 8,
       "RADAR_210_21F": 32,
       "RADAR_235_248": 32,
@@ -213,6 +215,35 @@ class TestHyundaiFingerprint(unittest.TestCase):
       assert not result.points
       assert get_radar_parser(RI, RADAR_238_255, 1).camera_dialect is None
 
+  def test_camera_238_coexists_with_500_and_expires(self):
+    fp = gen_empty_fingerprint()
+    add_radar_range(fp, RADAR_238_255, 1)
+    add_radar_range(fp, RADAR_500_53F, 1, end_addr=0x51F)
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fp, [], False, False, False)
+    assert not CP.radarUnavailable
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    radar_packer = CANPacker(RADAR_500_53F.dbc_name)
+    radar = [radar_packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 1,
+             {"STATE": 3, "LONG_DIST": 60, "REL_SPEED": -5} if addr == 0x500 else {}) for addr in range(0x500, 0x520)]
+    for cycle in range(3):
+      result = RI.update([(1_000_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255), *radar])])
+    assert len(result.points) == 2
+    assert {(source.startAddress, source.trackCount, source.sourceKind) for source in result.trackSources} == {
+      (0x238, 1, 1), (0x500, 1, 0),
+    }
+    camera_track_id = next(point.trackId for point in result.points if point.sourceAddress == 0x238)
+    # No output ticks from unrelated CAN. Expiry occurs on the next source cycle.
+    assert RI.update([(1_300_000_000, [self.camera_238_wheels()])]) is None
+    result = RI.update([(1_300_000_001, radar)])
+    assert [point.sourceAddress for point in result.points] == [0x500]
+    assert next(source.trackCount for source in result.trackSources if source.startAddress == 0x238) == 0
+    for cycle in range(3):
+      result = RI.update([(1_330_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255), *radar])])
+      assert len(result.points) == (2 if cycle == 2 else 1)
+    assert next(point.trackId for point in result.points if point.sourceAddress == 0x238) != camera_track_id
+
   def test_camera_238_repeated_timestamp_does_not_confirm(self):
     RI = self.camera_238_ri(0x255)
     messages = [self.camera_238_wheels(), *self.camera_238_cycle(0x255)]
@@ -262,6 +293,80 @@ class TestHyundaiFingerprint(unittest.TestCase):
       result = RI.update([(1_530_000_000 + cycle * 30_000_000,
                            [self.camera_238_wheels(), *self.camera_238_cycle(0x255)])])
       assert len(result.points) == int(cycle == 2)
+
+  def test_alt_camera_layout_and_captured_frames(self):
+    packer = CANPacker(RADAR_180_1B9.dbc_name)
+    parser = CANParser(RADAR_180_1B9.dbc_name, [("RADAR_TRACK_180", 33)], 1)
+    values = {"1_OBJECT_ID": 42, "1_LONG_DIST": 100.05, "1_LAT_DIST": -3.15, "1_REL_SPEED": -21.5,
+              "2_OBJECT_ID": 7, "2_LONG_DIST": 24.75, "2_LAT_DIST": 4.2, "2_REL_SPEED": 8.5}
+    parser.update([(1, [packer.make_can_msg("RADAR_TRACK_180", 1, values)])])
+    for name, value in values.items():
+      assert math.isclose(parser.vl["RADAR_TRACK_180"][name], value, abs_tol=1e-6)
+    # GV70 routes 3c/3e, Palisade non-HDA2, Sorento HEV, Sorento ICE; unmodified captured payloads.
+    frames = (
+      ("2e9bfe2360450122bacbfb7943c5b1af84faa6233cd510222f4814d242c1b1af", 20, 150.1, -0.85, 7.95),
+      ("04c4f628ff1550223cc200623ff6710f91688723aca5f021fe80f1893ef6690f", 1, 28.6, 0.15, 1.4),
+      ("556ed92dffe533223985fe293df1f91fb3090000000000000000000000000010", 62, 66.85, -0.3, -2.15),
+      ("689a5c23783233223484d0013c91880f33298223ffe2c2211b81a7393baa890f", 51, 53.8, -9.5, -4),
+      ("6cd89b2395220122998018423c18fadff5d7fd0000000000010000107ee8e30f", 18, 7.65, 4.9, -3.6),
+    )
+    for payload, oid, distance, lateral, speed in frames:
+      parser = CANParser(RADAR_180_1B9.dbc_name, [("RADAR_TRACK_180", 33)], 1)
+      parser.update([(1, [(0x180, bytes.fromhex(payload), 1)])])
+      msg = parser.vl["RADAR_TRACK_180"]
+      for name, expected in zip(("OBJECT_ID", "LONG_DIST", "LAT_DIST", "REL_SPEED"), (oid, distance, lateral, speed), strict=True):
+        assert math.isclose(msg[f"1_{name}"], expected, abs_tol=1e-6)
+      assert is_radar_track_valid(RADAR_180_1B9, msg, "1_")
+      msg["1_OBJECT_ID"] = 0
+      assert not is_radar_track_valid(RADAR_180_1B9, msg, "1_")
+
+  def test_alt_camera_second_address_bank_captured_frame(self):
+    # Sorento HEV: 833262b0c9e4016a/0000004a--0227a058e3, active slot in 1B6.
+    parser = CANParser(RADAR_180_1B9.dbc_name, [("RADAR_TRACK_1b6", 33)], 1)
+    frame = bytes.fromhex("50d0a32377521122374218b23ceb19b0d9d7fd0000000000010000307ee81b00")
+    parser.update([(1, [(0x1B6, frame, 1)])])
+    msg = parser.vl["RADAR_TRACK_1b6"]
+    assert msg["1_OBJECT_ID"] == 21
+    assert math.isclose(msg["1_LONG_DIST"], 28.35)
+    assert math.isclose(msg["1_LAT_DIST"], 4.85)
+    assert math.isclose(msg["1_REL_SPEED"], -2.9)
+
+  def test_alt_camera_disjoint_detection_and_cycle(self):
+    from opendbc.car.hyundai.radar_interface import detect_radar_tracks
+    fp = gen_empty_fingerprint()
+    add_radar_range(fp, RADAR_180_1B9, 1)
+    assert len(fp[1]) == 9
+    assert len(detect_radar_tracks(fp)) == 1
+    del fp[1][0x1B6]
+    assert not detect_radar_tracks(fp)
+    fp[1][0x1B6] = 8
+    assert not detect_radar_tracks(fp)
+    fp[1][0x1B6] = 32
+    CP = CarInterface.get_params(CAR.GENESIS_GV70_1ST_GEN, fp, [], False, False, False)
+    assert CP.radarUnavailable
+    off = RadarInterface(CP, CarParamsSP())
+    assert off.radar_tracks_available
+    assert CP.radarUnavailable
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    packer = CANPacker(RADAR_180_1B9.dbc_name)
+
+    def cycle(oid):
+      messages = [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 1,
+                  {"1_OBJECT_ID": oid, "1_LONG_DIST": 20, "1_LAT_DIST": 1, "1_REL_SPEED": -2} if addr == 0x180 else {})
+                  for addr in RADAR_180_1B9.address_range]
+      assert RI.update([(100, messages[:5])]) is None
+      # Unrelated addresses inside the gap cannot complete or poison a cycle.
+      assert RI.update([(101, [(0x190, bytes(32), 1)])]) is None
+      return RI.update([(102, messages[5:])])
+
+    result = cycle(1)
+    assert len(result.points) == 1
+    assert math.isclose(result.points[0].dRel, 20)
+    assert math.isclose(result.points[0].yRel, 1)
+    assert math.isclose(result.points[0].vRel, -2)
+    old_id = result.points[0].trackId
+    assert cycle(2).points[0].trackId != old_id
+    assert not cycle(0).points
 
   def test_radar_602_track_validity(self):
     for distance, valid in ((0, False), (0.25, True), (255.5, True), (255.75, False)):
@@ -857,6 +962,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
     bus2_parser.cycle_timestamps.extend(range(0, 500_000_000, 50_000_000))
 
     RI.active_radar_buses[RADAR_3A5_3C4.name] = 2
+    RI.can_time_nanos = 950_000_000
     RI._update(set())
 
     assert RI.active_radar_buses[RADAR_3A5_3C4.name] == 0
@@ -1227,3 +1333,110 @@ class TestHyundaiFingerprint(unittest.TestCase):
         platforms_with_shared_codes.add(platform)
 
     assert platforms_with_shared_codes == excluded_platforms
+
+
+class TestHyundaiSourceCoexistence(unittest.TestCase):
+  def make_interface(self, camera_spec=RADAR_180_1B9, radar_spec=RADAR_210_21F):
+    fingerprint = gen_empty_fingerprint()
+    add_radar_range(fingerprint, camera_spec, 2)
+    add_radar_range(fingerprint, radar_spec, 0)
+    cp = CarInterface.get_params(CAR.HYUNDAI_IONIQ_5, fingerprint, [], False, False, False)
+    ri = RadarInterface(cp, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    packers = {spec.name: CANPacker(spec.dbc_name) for spec in (camera_spec, radar_spec)}
+
+    def messages(spec, bus, valid):
+      prefix = spec.track_prefixes[0]
+      values = {f"{prefix}OBJECT_ID": 1} if spec.source_kind == "camera" else {f"{prefix}STATE": 3}
+      values.update({f"{prefix}LONG_DIST": 20, f"{prefix}LAT_DIST": 1, f"{prefix}REL_SPEED": -2})
+      return [packers[spec.name].make_can_msg(f"RADAR_TRACK_{addr:x}", bus,
+              values if valid and addr == spec.start_addr else {}) for addr in spec.address_range]
+
+    def cycle(ms, radar=None, camera=True):
+      frames = messages(camera_spec, 2, True) if camera else []
+      if radar is not None:
+        frames += messages(radar_spec, 0, radar)
+      return ri.update([(int(ms * 1e6) + 1, frames)])
+
+    return ri, cycle, messages
+
+  def test_camera_detection_preserves_physical_radar_unavailable(self):
+    for camera, radar in ((RADAR_180_1B9, RADAR_210_21F), (RADAR_235_248, RADAR_3A5_3C4)):
+      for candidate in (CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.KIA_SORENTO_HEV_4TH_GEN,
+                        CAR.HYUNDAI_PALISADE, CAR.HYUNDAI_IONIQ_5):
+        with self.subTest(camera=camera.name, candidate=candidate):
+          fp = gen_empty_fingerprint()
+          add_radar_range(fp, camera, 2)
+          cp = CarInterface.get_params(candidate, fp, [], False, False, False)
+          assert cp.radarUnavailable
+          ri = RadarInterface(cp, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+          assert ri.radar_tracks_available
+          add_radar_range(fp, radar, 0)
+          cp = CarInterface.get_params(candidate, fp, [], False, False, False)
+          assert not cp.radarUnavailable
+
+  def test_camera_and_radar_publish_together(self):
+    for camera, radar in ((RADAR_180_1B9, RADAR_210_21F), (RADAR_235_248, RADAR_3A5_3C4)):
+      with self.subTest(camera=camera.name):
+        _, cycle, _ = self.make_interface(camera, radar)
+        first = cycle(0, radar=True)
+        assert len(first.points) == 2
+        camera_id = next(point.trackId for point in first.points if point.sourceAddress == camera.start_addr)
+        assert {source.sourceKind for source in first.trackSources} == {0, 1}
+        for ms in (50, 100, 150):
+          result = cycle(ms, radar=True)
+          assert len(result.points) == 2
+        result = cycle(200, radar=False)
+        assert len(result.points) == 1
+        assert result.points[0].trackId == camera_id
+        assert len(cycle(250, radar=True).points) == 2
+
+  def test_silent_fingerprinted_camera_does_not_change_output_cadence(self):
+    ri, _, _ = self.make_interface(RADAR_235_248, RADAR_3A5_3C4)
+    packer = CANPacker(RADAR_3A5_3C4.dbc_name)
+
+    def radar_cycle(ms):
+      frames = [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 0, {"STATE": 3, "LONG_DIST": 20})
+                for addr in RADAR_3A5_3C4.address_range]
+      return ri.update([(ms * 1000000 + 1, frames)])
+
+    result = radar_cycle(0)
+    assert len(result.points) == 32
+    for ms in (10, 20, 30, 40):
+      assert ri.update([(ms * 1000000 + 1, [(0x100, bytes(8), 0)])]) is None
+    assert len(radar_cycle(50).points) == 32
+
+  def test_silent_radar_expires_only_at_publication(self):
+    for camera, radar in ((RADAR_180_1B9, RADAR_210_21F), (RADAR_235_248, RADAR_3A5_3C4)):
+      with self.subTest(camera=camera.name):
+        ri, cycle, _ = self.make_interface(camera, radar)
+        first = cycle(0, radar=True)
+        assert len(first.points) == 2
+        camera_id = next(point.trackId for point in first.points if point.sourceAddress == camera.start_addr)
+        cycle(50)
+        cycle(150)
+        assert ri.update([(200000001, [(0x100, bytes(8), 0)])]) is None
+        result = cycle(200)
+        assert len(result.points) == 1
+        assert result.points[0].trackId == camera_id
+        source = next(source for source in result.trackSources if source.startAddress == radar.start_addr)
+        assert source.trackCount == 0
+        assert len(cycle(250, radar=True).points) == 2
+
+  def test_silent_camera_expires_while_radar_cycles(self):
+    for camera, radar in ((RADAR_180_1B9, RADAR_210_21F), (RADAR_235_248, RADAR_3A5_3C4)):
+      with self.subTest(camera=camera.name):
+        _, cycle, _ = self.make_interface(camera, radar)
+        assert len(cycle(0, radar=True).points) == 2
+        assert len(cycle(50, radar=True, camera=False).points) == 2
+        result = cycle(100, radar=True, camera=False)
+        assert len(result.points) == 1
+        assert result.points[0].sourceAddress == radar.start_addr
+        source = next(source for source in result.trackSources if source.startAddress == camera.start_addr)
+        assert source.trackCount == 0
+
+  def test_source_kind_schema_roundtrip(self):
+    from opendbc.car import structs
+    message = structs.RadarData.new_message()
+    message.trackSources = [{"startAddress": 0x235, "sourceKind": 1}, {"startAddress": 0x3A5, "sourceKind": 0}]
+    with structs.RadarData.from_bytes(message.to_bytes()) as parsed:
+      assert [source.sourceKind for source in parsed.trackSources] == [1, 0]
