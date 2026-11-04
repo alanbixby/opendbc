@@ -1,5 +1,8 @@
 # Acura MDX 4G MMR: research only
 
+Historical first attempt. See [the second investigation](acura_mdx_4g_v2.md) for
+the narrower position candidates, cycle header, and updated validation.
+
 Branch: `radar-acura-mdx-4g`, based on `hyundai-radar-tracks`.
 Final head SHA is recorded in the external `work/honda/MDX_REPORT.md` after commit.
 
