@@ -1166,98 +1166,65 @@ class TestHyundaiSourceCoexistence(unittest.TestCase):
           cp = CarInterface.get_params(candidate, fp, [], False, False, False)
           assert not cp.radarUnavailable
 
-  def test_camera_radar_hysteresis_actual_can(self):
+  def test_camera_and_radar_publish_together(self):
+    for camera, radar in ((RADAR_180_1B9, RADAR_210_21F), (RADAR_235_248, RADAR_3A5_3C4)):
+      with self.subTest(camera=camera.name):
+        _, cycle, _ = self.make_interface(camera, radar)
+        first = cycle(0, radar=True)
+        assert len(first.points) == 2
+        camera_id = next(point.trackId for point in first.points if point.sourceAddress == camera.start_addr)
+        assert {source.sourceKind for source in first.trackSources} == {0, 1}
+        for ms in (50, 100, 150):
+          result = cycle(ms, radar=True)
+          assert len(result.points) == 2
+        result = cycle(200, radar=False)
+        assert len(result.points) == 1
+        assert result.points[0].trackId == camera_id
+        assert len(cycle(250, radar=True).points) == 2
+
+  def test_silent_fingerprinted_camera_does_not_change_output_cadence(self):
+    ri, _, _ = self.make_interface(RADAR_235_248, RADAR_3A5_3C4)
+    packer = CANPacker(RADAR_3A5_3C4.dbc_name)
+
+    def radar_cycle(ms):
+      frames = [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 0, {"STATE": 3, "LONG_DIST": 20})
+                for addr in RADAR_3A5_3C4.address_range]
+      return ri.update([(ms * 1000000 + 1, frames)])
+
+    result = radar_cycle(0)
+    assert len(result.points) == 32
+    for ms in (10, 20, 30, 40):
+      assert ri.update([(ms * 1000000 + 1, [(0x100, bytes(8), 0)])]) is None
+    assert len(radar_cycle(50).points) == 32
+
+  def test_silent_radar_expires_only_at_publication(self):
     for camera, radar in ((RADAR_180_1B9, RADAR_210_21F), (RADAR_235_248, RADAR_3A5_3C4)):
       with self.subTest(camera=camera.name):
         ri, cycle, _ = self.make_interface(camera, radar)
-        first = cycle(0)  # Camera starts first; the fingerprinted radar has not transmitted.
-        assert len(first.points) == 1
-        assert first.radarTracksAvailable
-        assert not first.errors.canError
-        camera_id = first.points[0].trackId
-        assert first.trackSources[0].sourceKind == 1
-        for ms in (50, 100, 150):
-          result = cycle(ms, radar=True)
-          assert result.points[0].trackId == camera_id
-        # A single empty radar cycle resets acquisition; it must not recreate the camera track.
-        assert cycle(200, radar=False).points[0].trackId == camera_id
-        for ms in (250, 300, 350, 400, 450, 500):
-          assert cycle(ms, radar=True).points[0].trackId == camera_id
-        result = cycle(550, radar=True)
-        assert result.points[0].sourceAddress == radar.start_addr
-        assert result.trackSources[0].sourceKind == 0
-        assert not result.errors.canError
-        radar_id = result.points[0].trackId
-        assert cycle(600, radar=True).points[0].trackId == radar_id
-        # One empty radar cycle while radar is selected holds the selection, not stale objects.
-        result = cycle(650, radar=False)
-        assert not result.points
-        assert all(source.sourceKind == 0 for source in result.trackSources)
-        assert cycle(700, radar=True).points[0].sourceAddress == radar.start_addr
-        # Radar silence: its cached points expire after three radar periods (150 ms).
-        for ms in (750, 800, 850):
-          assert cycle(ms).points[0].sourceAddress == radar.start_addr
-        assert not cycle(900).points
-        for ms in (950, 1000, 1050, 1100, 1150):
-          assert not cycle(ms).points
-        result = cycle(1200)
+        first = cycle(0, radar=True)
+        assert len(first.points) == 2
+        camera_id = next(point.trackId for point in first.points if point.sourceAddress == camera.start_addr)
+        cycle(50)
+        cycle(150)
+        assert ri.update([(200000001, [(0x100, bytes(8), 0)])]) is None
+        result = cycle(200)
+        assert len(result.points) == 1
         assert result.points[0].trackId == camera_id
-        assert result.trackSources[0].sourceKind == 1
-        assert not result.errors.canError
-        # Recovery requires another sustained run, then publishes radar only.
-        for ms in (1250, 1300, 1350, 1400, 1450, 1500):
-          assert cycle(ms, radar=True).points[0].trackId == camera_id
-        result = cycle(1550, radar=True)
+        source = next(source for source in result.trackSources if source.startAddress == radar.start_addr)
+        assert source.trackCount == 0
+        assert len(cycle(250, radar=True).points) == 2
+
+  def test_silent_camera_expires_while_radar_cycles(self):
+    for camera, radar in ((RADAR_180_1B9, RADAR_210_21F), (RADAR_235_248, RADAR_3A5_3C4)):
+      with self.subTest(camera=camera.name):
+        _, cycle, _ = self.make_interface(camera, radar)
+        assert len(cycle(0, radar=True).points) == 2
+        assert len(cycle(50, radar=True, camera=False).points) == 2
+        result = cycle(100, radar=True, camera=False)
         assert len(result.points) == 1
         assert result.points[0].sourceAddress == radar.start_addr
-
-  def test_radar_first_startup_and_can_clock_expiry(self):
-    ri, cycle, messages = self.make_interface()
-    result = cycle(0, radar=True, camera=False)
-    assert result.points[0].sourceAddress == 0x210
-    assert not result.errors.canError
-    # Partial frames and an end marker do not constitute another complete cycle.
-    frames = messages(RADAR_210_21F, 0, True)
-    ri.update([(100000001, [frames[0], frames[-1]])])
-    result = ri.update([(200000001, [(0x100, bytes(8), 0)])])
-    assert result is not None
-    assert not result.points
-    assert result.errors.canError
-
-  def test_sustained_empty_radar_falls_back_without_rebuilding_camera_track(self):
-    _, cycle, _ = self.make_interface()
-    camera_id = cycle(0).points[0].trackId
-    for ms in range(50, 401, 50):
-      cycle(ms, radar=True)
-    for ms in range(450, 750, 50):
-      result = cycle(ms, radar=False)
-      assert not result.points
-      assert all(source.sourceKind == 0 for source in result.trackSources)
-    result = cycle(750, radar=False)
-    assert result.points[0].trackId == camera_id
-    assert result.trackSources[0].sourceKind == 1
-    assert not result.errors.canError
-
-  def test_empty_radar_does_not_select_unstarted_camera(self):
-    _, cycle, _ = self.make_interface()
-    for ms in range(0, 1000, 50):
-      result = cycle(ms, radar=False, camera=False)
-      assert not result.errors.canError
-      assert not result.points
-      assert result.trackSources[0].sourceKind == 0
-
-  def test_radar_acquisition_requires_complete_cycles_across_hold(self):
-    _, cycle, _ = self.make_interface()
-    first_id = cycle(0).points[0].trackId
-    for ms in (50, 100, 150):
-      assert cycle(ms, radar=True).points[0].trackId == first_id
-    # Fresh cached radar data alone cannot finish the 300 ms acquisition hold.
-    assert cycle(350).points[0].trackId == first_id
-    # A long gap in CAN time must reset acquisition even if both sources resume together.
-    assert cycle(1000, radar=True).points[0].sourceAddress == RADAR_180_1B9.start_addr
-    for ms in (1050, 1100, 1150, 1200, 1250):
-      assert cycle(ms, radar=True).points[0].sourceAddress == RADAR_180_1B9.start_addr
-    assert cycle(1300, radar=True).points[0].sourceAddress == RADAR_210_21F.start_addr
+        source = next(source for source in result.trackSources if source.startAddress == camera.start_addr)
+        assert source.trackCount == 0
 
   def test_source_kind_schema_roundtrip(self):
     from opendbc.car import structs

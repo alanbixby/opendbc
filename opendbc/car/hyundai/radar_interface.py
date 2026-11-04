@@ -12,7 +12,6 @@ from opendbc.sunnypilot.car.hyundai.values import HyundaiFlagsSP, RadarType
 RADAR_TRACK_BUSES = (0, 1, 2)
 RADAR_CADENCE_TOLERANCE = 0.25
 RADAR_FRESH_CYCLE_PERIODS = 3
-RADAR_SOURCE_HOLD_NANOS = 300_000_000
 
 
 # POC for parsing corner radars: https://github.com/commaai/openpilot/pull/24221/
@@ -257,10 +256,6 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     self.active_radar_buses: dict[str, int] = {}
     self.camera_object_ids: dict[HyundaiRadarTrackKey, int] = {}
     self.can_time_nanos = 0
-    self.preferred_source_kind: str | None = None
-    self.radar_presence_since: int | None = None
-    self.radar_presence_last_nanos: int | None = None
-    self.radar_absence_since: int | None = None
     self.trigger_msg = DEFAULT_RADAR_TRIGGER_MSG
 
     self.radar_off_can = True
@@ -352,10 +347,6 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     self.active_radar_buses.clear()
     self.camera_object_ids.clear()
     self.can_time_nanos = 0
-    self.preferred_source_kind = None
-    self.radar_presence_since = None
-    self.radar_presence_last_nanos = None
-    self.radar_absence_since = None
     for radar_parser in self.radar_parsers:
       radar_parser.cycle_timestamps.clear()
 
@@ -430,13 +421,12 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
       if relevant_addrs:
         self.seen_radar_addrs.setdefault((radar_parser.spec.name, radar_parser.bus), set()).update(relevant_addrs)
         self.updated_messages.update((radar_parser.bus, addr) for addr in relevant_addrs)
-      if all(addr in relevant_addrs for addr in radar_parser.address_range):
         for timestamp in cycle_end_timestamps:
           if not radar_parser.cycle_timestamps or timestamp != radar_parser.cycle_timestamps[-1]:
             radar_parser.cycle_timestamps.append(timestamp)
       radar_cycle_complete = True
 
-    if not radar_cycle_complete and not (self.pts and any(not self._parser_fresh(rp) for rp in self.radar_parsers)):
+    if not radar_cycle_complete:
       return None
 
     rr = self._update(self.updated_messages)
@@ -485,43 +475,6 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
                 self.can_time_nanos - radar_parser.cycle_timestamps[-1] <=
                 RADAR_FRESH_CYCLE_PERIODS * 1e9 / radar_parser.spec.frequency)
 
-  def _select_source_kind(self, parsers: list[HyundaiRadarParserConfig]) -> str | None:
-    available_kinds = {rp.spec.source_kind for rp in self.radar_parsers}
-    if len(available_kinds) == 1:
-      self.preferred_source_kind = next(iter(available_kinds))
-      return self.preferred_source_kind
-    radar_with_points = [rp for rp in parsers if rp.spec.source_kind == "radar" and self._radar_parser_valid_count(rp, set()) > 0]
-    radar_present = bool(radar_with_points)
-    presence_time = max((rp.cycle_timestamps[-1] for rp in radar_with_points if rp.cycle_timestamps), default=self.can_time_nanos)
-    if radar_present:
-      self.radar_absence_since = None
-      continuity_limit = max(RADAR_FRESH_CYCLE_PERIODS * 1e9 / rp.spec.frequency for rp in radar_with_points)
-      if self.radar_presence_since is None or (self.radar_presence_last_nanos is not None and
-                                              presence_time - self.radar_presence_last_nanos > continuity_limit):
-        self.radar_presence_since = presence_time
-      self.radar_presence_last_nanos = presence_time
-    else:
-      self.radar_presence_since = None
-      self.radar_presence_last_nanos = None
-      if self.radar_absence_since is None:
-        self.radar_absence_since = self.can_time_nanos
-
-    if self.preferred_source_kind is None:
-      # Start with whichever complete source is available; prefer radar if both are ready.
-      if radar_present or (parsers and all(rp.spec.source_kind == "radar" for rp in parsers)):
-        self.preferred_source_kind = "radar"
-      elif any(rp.spec.source_kind == "camera" for rp in parsers):
-        self.preferred_source_kind = "camera"
-    elif self.preferred_source_kind == "camera" and self.radar_presence_since is not None:
-      if presence_time - self.radar_presence_since >= RADAR_SOURCE_HOLD_NANOS:
-        self.preferred_source_kind = "radar"
-    elif self.preferred_source_kind == "radar" and self.radar_absence_since is not None:
-      if self.can_time_nanos - self.radar_absence_since >= RADAR_SOURCE_HOLD_NANOS and any(
-        rp.spec.source_kind == "camera" for rp in parsers
-      ):
-        self.preferred_source_kind = "camera"
-    return self.preferred_source_kind
-
   def _select_active_radar_parser(self, radar_parsers: list[HyundaiRadarParserConfig]) -> HyundaiRadarParserConfig:
     valid_counts = {rp.bus: self._radar_parser_valid_count(rp, set()) for rp in radar_parsers}
     current_bus = self.active_radar_buses.get(radar_parsers[0].spec.name)
@@ -546,7 +499,7 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
       msg = radar_parser.parser.vl[msg_name]
       for track_prefix in radar_parser.spec.track_prefixes:
         track_key = get_track_storage_key(radar_parser.spec, addr, track_prefix)
-        if radar_parser.spec.source_kind == "camera":
+        if radar_parser.spec == RADAR_180_1B9:
           object_id = int(msg[f"{track_prefix}OBJECT_ID"])
           if self.camera_object_ids.get(track_key) != object_id:
             self.pts.pop(track_key, None)
@@ -598,21 +551,19 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
 
       ret.radarTracksAvailable = self.radar_tracks_available
 
-      selected_parsers = [self._select_active_radar_parser(parsers) for parsers in radar_parsers_by_spec.values()]
-      fresh_parsers = [rp for rp in selected_parsers if self._parser_fresh(rp)]
-      fresh_specs = {rp.spec.name for rp in fresh_parsers}
-      # Keep hidden camera tracks current across source holds, but never retain expired geometry.
-      self.pts = {key: point for key, point in self.pts.items() if isinstance(key, tuple) and key[0] in fresh_specs}
-      counts = {rp.spec.name: self._update_radar_points_from_parser(rp) for rp in fresh_parsers}
-      source_kind = self._select_source_kind(fresh_parsers)
-      for parser in fresh_parsers:
-        if parser.spec.source_kind == source_kind:
-          active_radar_parsers.append(parser)
-          active_radar_sources.append((parser, counts[parser.spec.name]))
+      for radar_parsers in radar_parsers_by_spec.values():
+        parser = self._select_active_radar_parser(radar_parsers)
+        active_radar_parsers.append(parser)
+        if self._parser_fresh(parser):
+          track_count = self._update_radar_points_from_parser(parser)
+        else:
+          # Expire only at cycle-driven publication; a silent source cannot add output ticks.
+          self.pts = {key: point for key, point in self.pts.items()
+                      if not isinstance(key, tuple) or key[0] != parser.spec.name}
+          track_count = 0
+        active_radar_sources.append((parser, track_count))
 
-    if any(not radar_parser.parser.can_valid for radar_parser in active_radar_parsers) or (
-      self.can_time_nanos and not active_radar_parsers and bool(self.radar_parsers)
-    ):
+    if any(not radar_parser.parser.can_valid for radar_parser in active_radar_parsers):
       ret.errors.canError = True
 
     ret.trackSources = [{
@@ -622,6 +573,5 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
       "trackCount": track_count,
       "sourceKind": int(radar_parser.spec.source_kind == "camera"),
     } for radar_parser, track_count in active_radar_sources]
-    active_specs = {rp.spec.name for rp in active_radar_parsers}
-    ret.points = [point for key, point in self.pts.items() if isinstance(key, tuple) and key[0] in active_specs]
+    ret.points = list(self.pts.values())
     return ret
