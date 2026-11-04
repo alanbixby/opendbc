@@ -10,7 +10,7 @@ from opendbc.car.fw_versions import build_fw_dict
 from opendbc.car.hyundai.interface import CarInterface
 from opendbc.car.hyundai.hyundaicanfd import CanBus
 from opendbc.car.hyundai.radar_interface import HYUNDAI_RADAR_TRACK_SPECS, RADAR_180_1B9, RADAR_210_21F, RADAR_235_248, RADAR_3A5_3C4, \
-                                                RADAR_500_53F, RADAR_602_617, RadarInterface, get_detected_radar_tracks, \
+                                                RADAR_500_53F, RADAR_602_617, RADAR_238_255, RadarInterface, get_detected_radar_tracks, \
                                                 is_radar_track_valid
 from opendbc.car.hyundai.values import CAMERA_SCC_CAR, CANFD_CAR, CAN_GEARS, CAR, CHECKSUM, DATE_FW_ECUS, \
                                          HYBRID_CAR, EV_CAR, FW_QUERY_CONFIG, LEGACY_SAFETY_MODE_CAR, CANFD_FUZZY_WHITELIST, \
@@ -74,6 +74,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
       "RADAR_235_248": 33,
       "RADAR_3A5_3C4": 20,
       "RADAR_602_617": 10,
+      "RADAR_238_255": 33,
     }
 
   def test_radar_track_message_sizes(self):
@@ -84,7 +85,306 @@ class TestHyundaiFingerprint(unittest.TestCase):
       "RADAR_235_248": 32,
       "RADAR_3A5_3C4": 24,
       "RADAR_602_617": 8,
+      "RADAR_238_255": 8,
     }
+
+  def test_camera_238_captured_layouts(self):
+    # A: Elantra 224d1e774b6acc2e/0000001d--0ae7d5fa70, segment 10.
+    # B: Ioniq 4a975fc1d9e71801/00000005--50d176008a, cached capture.
+    parser = CANParser(RADAR_238_255.dbc_name, [("RADAR_TRACK_238", 33)], 1)
+    parser.update([(1, [(0x238, bytes.fromhex("64ca809b9a51f638"), 1)])])
+    msg = parser.vl["RADAR_TRACK_238"]
+    for signal, expected in {"LONG_DIST": 161.25, "LAT_DIST": -0.45, "OBJECT_SPEED": 23.4,
+                             "COUNTER_A": 0, "OBJECT_ID": 28}.items():
+      assert abs(msg[signal] - expected) < 1e-6
+    parser.update([(2, [(0x238, bytes.fromhex("7438e337fffe5144"), 1)])])
+    msg = parser.vl["RADAR_TRACK_238"]
+    for signal, expected in {"LONG_DIST_B": 91, "LAT_DIST_B": -1.35, "REL_SPEED_B": -17.7,
+                             "COUNTER_B": 0, "OBJECT_ID_B": 29}.items():
+      assert abs(msg[signal] - expected) < 1e-6
+
+  def test_camera_238_variants_and_identity(self):
+    packer = CANPacker(RADAR_238_255.dbc_name)
+    wheel_packer = CANPacker("hyundai_can_generated")
+    for end_addr in (0x24F, 0x255):
+      with self.subTest(end_addr=end_addr):
+        fp = gen_empty_fingerprint()
+        add_radar_range(fp, RADAR_238_255, 1, end_addr=end_addr)
+        CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fp, [], False, False, False)
+        RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+        assert get_radar_parser(RI, RADAR_238_255, 1).end_addr == end_addr
+        assert RADAR_238_255.source_kind == "camera"
+        assert CP.radarUnavailable
+        values = ({"LONG_DIST": 40, "LAT_DIST": 2, "OBJECT_SPEED": 15, "OBJECT_ID": 7} if end_addr == 0x255 else
+                  {"LONG_DIST_B": 40, "LAT_DIST_B": 2, "REL_SPEED_B": 5, "OBJECT_ID_B": 7})
+        messages = [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 1, values if addr == 0x238 else {})
+                    for addr in range(0x238, end_addr + 1)]
+        wheels = wheel_packer.make_can_msg("WHL_SPD11", 0, {f"WHL_SPD_{wheel}": 36 for wheel in ("FL", "FR", "RL", "RR")})
+        for cycle in range(6):
+          result = RI.update([(1_000_000_000 + cycle * 30_000_000, [wheels, *messages])])
+        assert len(result.points) == 1
+        point = result.points[0]
+        assert (point.dRel, point.yRel, point.vRel) == (40, 2, 5)
+        old_id = point.trackId
+        values["OBJECT_ID" if end_addr == 0x255 else "OBJECT_ID_B"] = 8
+        messages[0] = packer.make_can_msg("RADAR_TRACK_238", 1, values)
+        for cycle in range(3):
+          result = RI.update([(1_180_000_000 + cycle * 30_000_000, [wheels, *messages])])
+          if cycle < 2:
+            assert not result.points
+        assert result.points[0].trackId != old_id
+        messages[0] = packer.make_can_msg("RADAR_TRACK_238", 1, {})
+        assert not RI.update([(1_270_000_000, messages)]).points
+
+  def test_camera_238_live_upgrade_and_missing_ego(self):
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, gen_empty_fingerprint(), [], False, False, False)
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    RI._discover_radar_parsers([(1, [(addr, bytes(8), 1) for addr in range(0x238, 0x250)])])
+    assert get_radar_parser(RI, RADAR_238_255, 1).end_addr == 0x24F
+    RI._discover_radar_parsers([(2, [(addr, bytes(8), 1) for addr in range(0x250, 0x256)])])
+    assert get_radar_parser(RI, RADAR_238_255, 1).end_addr == 0x255
+    packer = CANPacker(RADAR_238_255.dbc_name)
+    messages = [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 1,
+                {"LONG_DIST": 40, "OBJECT_ID": 7, "OBJECT_SPEED": 15} if addr == 0x238 else {})
+                for addr in RADAR_238_255.address_range]
+    # Absolute-speed dialect must not emit a relative-speed point without ego speed.
+    assert not RI.update([(1_000_000_000, messages)]).points
+
+  @staticmethod
+  def camera_238_cycle(end_addr, distance=40, velocity=0, object_id=9, lateral=0):
+    packer = CANPacker(RADAR_238_255.dbc_name)
+    values = ({"LONG_DIST": distance, "LAT_DIST": lateral, "OBJECT_SPEED": velocity + 10, "OBJECT_ID": object_id}
+              if end_addr == 0x255 else
+              {"LONG_DIST_B": distance, "LAT_DIST_B": lateral, "REL_SPEED_B": velocity, "OBJECT_ID_B": object_id})
+    return [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 1, values if addr == 0x238 else {})
+            for addr in range(0x238, end_addr + 1)]
+
+  @staticmethod
+  def camera_238_ri(end_addr=None):
+    fp = gen_empty_fingerprint()
+    if end_addr:
+      add_radar_range(fp, RADAR_238_255, 1, end_addr=end_addr)
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fp, [], False, False, False)
+    return RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+
+  @staticmethod
+  def camera_238_wheels():
+    return CANPacker("hyundai_can_generated").make_can_msg("WHL_SPD11", 0,
+                                                         {f"WHL_SPD_{wheel}": 36 for wheel in ("FL", "FR", "RL", "RR")})
+
+  def test_camera_238_split_batch_startup(self):
+    RI = self.camera_238_ri()
+    # Exact A payload which was formerly emitted as B at startup, without ego.
+    prefix = [(addr, bytes.fromhex("64ca809b9a51f638") if addr == 0x238 else bytes(8), 1) for addr in range(0x238, 0x250)]
+    assert not RI.update([(1_000_000_000, prefix)]).points
+    parser = get_radar_parser(RI, RADAR_238_255, 1)
+    assert parser.camera_dialect is None
+    assert not RI._camera_238_eligible(parser)
+    # A's extension arrives in another CAN batch, after the B-looking cycle end.
+    upper = [(addr, bytes(8), 1) for addr in range(0x250, 0x256)]
+    assert not RI.update([(1_001_000_000, upper)]).points
+    parser = get_radar_parser(RI, RADAR_238_255, 1)
+    assert parser.camera_dialect == "A"
+    assert not RI._camera_238_eligible(parser)
+    # Correct A geometry is used once a complete track has confirmed with fresh ego.
+    for cycle in range(3):
+      result = RI.update([(1_030_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255)])])
+      assert len(result.points) == int(cycle == 2)
+    assert (result.points[0].dRel, result.points[0].yRel, result.points[0].vRel) == (40, 0, 0)
+
+  def test_camera_238_b_waits_for_complete_cycles(self):
+    RI = self.camera_238_ri()
+    for cycle in range(7):
+      messages = self.camera_238_cycle(0x24F)
+      timestamp = 1_000_000_000 + cycle * 30_000_000
+      # Split every required cycle into two real CAN batches.
+      assert RI.update([(timestamp, messages[:12])]) is None
+      result = RI.update([(timestamp + 1_000_000, messages[12:])])
+      assert len(result.points) == int(cycle == 6)
+      parser = get_radar_parser(RI, RADAR_238_255, 1)
+      assert (parser.camera_dialect is None) == (cycle < 4)
+
+  def test_camera_238_partial_extension_blocks_b(self):
+    RI = self.camera_238_ri()
+    for cycle in range(7):
+      messages = self.camera_238_cycle(0x24F)
+      if cycle == 0:
+        messages.append((0x250, bytes(8), 1))
+      result = RI.update([(1_000_000_000 + cycle * 30_000_000, messages)])
+      assert not result.points
+      assert get_radar_parser(RI, RADAR_238_255, 1).camera_dialect is None
+
+  def test_camera_238_partial_echo_does_not_reset_other_bus(self):
+    fp = gen_empty_fingerprint()
+    add_radar_range(fp, RADAR_238_255, 1)
+    add_radar_range(fp, RADAR_238_255, 2, end_addr=0x24F)
+    fp[2][0x250] = 8
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fp, [], False, False, False)
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    track_id = None
+    for cycle in range(12):
+      messages = [self.camera_238_wheels(), *self.camera_238_cycle(0x255)]
+      if cycle == 0:
+        messages += [(addr, data, 2) for addr, data, _ in self.camera_238_cycle(0x255) if addr <= 0x250]
+      if cycle == 8:
+        # Completing the echo's A extension also must not invalidate bus 1.
+        messages += [(addr, bytes(8), 2) for addr in range(0x251, 0x256)]
+      result = RI.update([(1_000_000_000 + cycle * 30_000_000, messages)])
+      assert len(result.points) == int(cycle >= 2)
+      if result.points:
+        assert result.points[0].sourceBus == 1
+        if track_id is None:
+          track_id = result.points[0].trackId
+        assert result.points[0].trackId == track_id
+    assert get_radar_parser(RI, RADAR_238_255, 2).camera_dialect == "A"
+
+  def test_camera_238_captured_withdrawal_preserves_association(self):
+    RI = self.camera_238_ri(0x255)
+    # Custin route 01 segment 1: native ID 46, continuously valid at 0x247.
+    samples = [
+      (866614953593, "10527deb7b06385c"),
+      (866645479556, "10127e0b7b0a375c"),
+      (866675013781, "0fda7e2b7b0e365c"),
+      (866705463548, "0f527e6b7ac23a5c"),
+      (866735323387, "0f127e8b7ac6395c"),
+      (866764957974, "0eda7eab7aca385c"),
+      (866795517008, "0e9a7ebb7ac2375c"),
+    ]
+    wheel = CANPacker("hyundai_can_generated").make_can_msg(
+      "WHL_SPD11", 0, {f"WHL_SPD_{name}": 45.4 for name in ("FL", "FR", "RL", "RR")})
+    published = []
+    identities = []
+    for timestamp, payload in samples:
+      messages = self.camera_238_cycle(0x255, distance=0, object_id=0)
+      messages[0x247 - 0x238] = (0x247, bytes.fromhex(payload), 1)
+      result = RI.update([(timestamp, [wheel, *messages])])
+      published.append(len(result.points))
+      if result.points:
+        identities.append(result.points[0].trackId)
+    assert published == [0, 0, 1, 0, 0, 1, 1]
+    assert len(set(identities)) == 1
+    assert RI.track_id == 1
+    # Invalid/missing native presence ends association even during withdrawal.
+    RI.update([(866825517008, self.camera_238_cycle(0x255, distance=0, object_id=0))])
+    assert not RI.camera_track_associations
+
+  def test_camera_238_identity_retention_guards(self):
+    for failure in ("missing", "jump", "timeout", "lateral", "stale_wheel"):
+      with self.subTest(failure=failure):
+        RI = self.camera_238_ri(0x255)
+
+        def send(cycle, distance=40, lateral=0, object_id=9, wheel=True, interface=RI):
+          messages = self.camera_238_cycle(0x255, distance, object_id=object_id, lateral=lateral)
+          return interface.update([(1_000_000_000 + cycle * 30_000_000,
+                             [*([self.camera_238_wheels()] if wheel else []), *messages])])
+        for cycle in range(3):
+          result = send(cycle)
+        first_id = result.points[0].trackId
+        # Force withdrawal, without a raw jump that trips the shared reuse guard.
+        assert not send(3, lateral=1).points
+        if failure == "missing":
+          assert not send(4, distance=0).points
+          assert not RI.camera_track_associations
+        elif failure == "jump":
+          assert not send(4, distance=90).points
+        elif failure == "timeout":
+          for cycle in range(4, 16):
+            assert not send(cycle, lateral=cycle % 2).points
+        elif failure == "lateral":
+          # Raw steps remain plausible, but endpoint exceeds the tighter reconnect bound.
+          assert not send(4, lateral=2).points
+        elif failure == "stale_wheel":
+          assert not send(21, wheel=False).points
+          assert not RI.camera_track_associations
+        start = 22 if failure == "stale_wheel" else 16 if failure == "timeout" else 5
+        distance = 90 if failure == "jump" else 40
+        lateral = 2 if failure == "lateral" else 0
+        for cycle in range(start, start + 3):
+          result = send(cycle, distance, lateral)
+        assert len(result.points) == 1
+        assert result.points[0].trackId != first_id
+
+  def test_camera_238_coexists_with_500_and_expires(self):
+    fp = gen_empty_fingerprint()
+    add_radar_range(fp, RADAR_238_255, 1)
+    add_radar_range(fp, RADAR_500_53F, 1, end_addr=0x51F)
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fp, [], False, False, False)
+    assert not CP.radarUnavailable
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    radar_packer = CANPacker(RADAR_500_53F.dbc_name)
+    radar = [radar_packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 1,
+             {"STATE": 3, "LONG_DIST": 60, "REL_SPEED": -5} if addr == 0x500 else {}) for addr in range(0x500, 0x520)]
+    for cycle in range(3):
+      result = RI.update([(1_000_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255), *radar])])
+    assert len(result.points) == 2
+    assert {(source.startAddress, source.trackCount, source.sourceKind) for source in result.trackSources} == {
+      (0x238, 1, 1), (0x500, 1, 0),
+    }
+    camera_track_id = next(point.trackId for point in result.points if point.sourceAddress == 0x238)
+    # No output ticks from unrelated CAN. Expiry occurs on the next source cycle.
+    assert RI.update([(1_300_000_000, [self.camera_238_wheels()])]) is None
+    result = RI.update([(1_300_000_001, radar)])
+    assert [point.sourceAddress for point in result.points] == [0x500]
+    assert next(source.trackCount for source in result.trackSources if source.startAddress == 0x238) == 0
+    for cycle in range(3):
+      result = RI.update([(1_330_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255), *radar])])
+      assert len(result.points) == (2 if cycle == 2 else 1)
+    assert next(point.trackId for point in result.points if point.sourceAddress == 0x238) != camera_track_id
+
+  def test_camera_238_repeated_timestamp_does_not_confirm(self):
+    RI = self.camera_238_ri(0x255)
+    messages = [self.camera_238_wheels(), *self.camera_238_cycle(0x255)]
+    assert not RI.update([(1_000_000_000, messages)]).points
+    # Another cycle end cannot stand in for a new observation of this object.
+    assert not RI.update([(1_030_000_000, [(0x255, bytes(8), 1)])]).points
+    assert not RI.camera_238_confirmations
+    for cycle in range(2, 6):
+      assert not RI.update([(1_000_000_000 + cycle * 30_000_000, [(0x255, bytes(8), 1)])]).points
+    assert not RI.camera_238_confirmations
+
+  def test_camera_238_jump_retires_then_reconfirms(self):
+    RI = self.camera_238_ri(0x255)
+    for cycle in range(3):
+      result = RI.update([(1_000_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255, 80 - .3 * cycle, -10)])])
+      assert len(result.points) == int(cycle == 2)
+    old_id = result.points[0].trackId
+    # Same native ID, impossible distance jump: remove immediately, then require K again.
+    for cycle in range(3):
+      result = RI.update([(1_090_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255, 30 - .3 * cycle, -10)])])
+      assert len(result.points) == int(cycle == 2)
+    assert result.points[0].trackId != old_id
+    assert result.points[0].vRel == -10
+    # A lateral jump also retires the point immediately.
+    result = RI.update([(1_180_000_000, [self.camera_238_wheels(), *self.camera_238_cycle(0x255, 29.1, -10, lateral=5)])])
+    assert not result.points
+
+  def test_camera_238_rejects_reported_niro_jump(self):
+    RI = self.camera_238_ri(0x24F)
+    for cycle in range(8):
+      messages = self.camera_238_cycle(0x24F)
+      messages[0] = (0x238, bytes.fromhex("2489b3340036c140" if cycle < 4 else "2466d2b60039b142"), 1)
+      assert not RI.update([(182_196_715_606 + cycle * 30_000_000, messages)]).points
+
+  def test_camera_238_wheel_freshness_boundary(self):
+    RI = self.camera_238_ri(0x255)
+    for elapsed in range(0, 480_000_001, 30_000_000):
+      messages = self.camera_238_cycle(0x255)
+      if elapsed == 0:
+        messages.insert(0, self.camera_238_wheels())
+      result = RI.update([(1_000_000_000 + elapsed, messages)])
+    assert result.points
+    assert RI.update([(1_500_000_000, self.camera_238_cycle(0x255))]).points
+    assert not RI.update([(1_500_000_001, self.camera_238_cycle(0x255))]).points
+    assert not RI._camera_238_eligible(get_radar_parser(RI, RADAR_238_255, 1))
+    for cycle in range(3):
+      result = RI.update([(1_530_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255)])])
+      assert len(result.points) == int(cycle == 2)
 
   def test_alt_camera_layout_and_captured_frames(self):
     packer = CANPacker(RADAR_180_1B9.dbc_name)
@@ -159,6 +459,111 @@ class TestHyundaiFingerprint(unittest.TestCase):
     old_id = result.points[0].trackId
     assert cycle(2).points[0].trackId != old_id
     assert not cycle(0).points
+
+  def test_camera_238_captured_slot_migrations_keep_identity(self):
+    # Custin 3e4f79d5bf692518/00000001--f53d01f8e3 segment 1, object 42.
+    examples = (
+      (46.78, ((0, 0x24D, "23c2698c7f4e8454"), (30669655, 0x24D, "23a269cc7f428354"),
+               (60389447, 0x24D, "237a6a0c7f428354"), (89988305, 0x250, "23626a6b809e8d54"),
+               (119797052, 0x250, "23426abb80928d54"))),
+      (47.11, ((0, 0x24D, "21a26ceb80b28154"), (29588754, 0x24D, "217a6d2b80b68154"),
+               (60149768, 0x24D, "215a6d6b80ba8054"), (89897215, 0x24A, "212a6dbb80ba8954"),
+               (119488781, 0x24A, "210a6dfb80be8854"))),
+    )
+    for wheel_speed, samples in examples:
+      RI = self.camera_238_ri(0x255)
+      wheels = CANPacker("hyundai_can_generated").make_can_msg("WHL_SPD11", 0,
+                                                             {f"WHL_SPD_{wheel}": wheel_speed for wheel in ("FL", "FR", "RL", "RR")})
+      track_id = None
+      for index, (elapsed, addr, captured) in enumerate(samples):
+        messages = self.camera_238_cycle(0x255, distance=0, object_id=0)
+        messages[addr - 0x238] = (addr, bytes.fromhex(captured), 1)
+        result = RI.update([(1_000_000_000 + elapsed, [wheels, *messages])])
+        if index < 2:
+          assert not result.points
+          continue
+        assert len(result.points) == 1
+        point = result.points[0]
+        if track_id is None:
+          track_id = point.trackId
+        assert point.trackId == track_id
+        assert point.sourceAddress == addr
+        assert point.trackAge == index - 1
+      # Missing ID retires both its shared point and confirmation state.
+      assert not RI.update([(1_150_000_000, self.camera_238_cycle(0x255, distance=0, object_id=0))]).points
+      assert not RI.camera_238_confirmations
+      for elapsed, addr, captured in samples[:3]:
+        messages = self.camera_238_cycle(0x255, distance=0, object_id=0)
+        messages[addr - 0x238] = (addr, bytes.fromhex(captured), 1)
+        result = RI.update([(1_200_000_000 + elapsed, [wheels, *messages])])
+      assert result.points[0].trackId != track_id
+
+  def test_camera_238_captured_b_id_zero_and_companions(self):
+    RI = self.camera_238_ri(0x24F)
+    for cycle in range(4):
+      RI.update([(1_000_000_000 + cycle * 30_000_000, self.camera_238_cycle(0x24F, distance=0, object_id=0))])
+    # Niro EV b27d segment 6: real ID-0 object in slot 0x23b.
+    captures = ("020584070003a141", "010594070003a141", "0005a4060003a141")
+    for cycle, capture in enumerate(captures):
+      messages = self.camera_238_cycle(0x24F, distance=0, object_id=0)
+      messages[3] = (0x23B, bytes.fromhex(capture), 1)
+      # Companions do not contain OBJECT_ID, geometry, or motion fields.
+      messages[1] = (0x239, bytes.fromhex("037d07d07d000000"), 1)
+      result = RI.update([(1_150_000_000 + cycle * 30_000_000, messages)])
+      assert len(result.points) == int(cycle == 2)
+    point = result.points[0]
+    assert math.isclose(point.dRel, 9)
+    assert math.isclose(point.yRel, 2.9, abs_tol=1e-5)
+    assert math.isclose(point.vRel, 3)
+    parser = get_radar_parser(RI, RADAR_238_255, 1)
+    assert 0x239 not in parser.parser.addresses
+    assert set(parser.parser.vl["RADAR_TRACK_238"]) == {"LONG_DIST_B", "LAT_DIST_B", "REL_SPEED_B", "OBJECT_ID_B"}
+    assert RI.camera_ego_parser is None
+    assert not RI.update([(1_240_000_000, self.camera_238_cycle(0x24F, distance=0, object_id=0))]).points
+
+  def test_camera_238_captured_rails_are_not_geometry(self):
+    for captured in ("165a53ad001fe140", "2057d40900600141"):
+      RI = self.camera_238_ri(0x24F)
+      frame = bytearray.fromhex(captured)
+      # Preserve captured rail bits and ID; lower range to 20 m so this test
+      # specifically rejects the lateral rail rather than the range cap.
+      distance_raw = 400
+      frame[1], frame[2] = distance_raw >> 5, ((distance_raw & 31) << 3) | (frame[2] & 7)
+      for cycle in range(8):
+        messages = self.camera_238_cycle(0x24F, distance=0, object_id=0)
+        messages[0] = (0x238, bytes(frame), 1)
+        assert not RI.update([(1_000_000_000 + cycle * 30_000_000, messages)]).points
+
+  def test_camera_238_captured_a_validity_and_stale_wheels(self):
+    captures = ("0952802b9661f438", "0952802b9665f438", "0952802b9669f438")
+    wheels = CANPacker("hyundai_can_generated").make_can_msg("WHL_SPD11", 0,
+                                                           {f"WHL_SPD_{wheel}": 72.72 for wheel in ("FL", "FR", "RL", "RR")})
+    RI = self.camera_238_ri(0x255)
+    for cycle in range(17):
+      messages = self.camera_238_cycle(0x255, distance=0, object_id=0)
+      messages[0] = (0x238, bytes.fromhex(captures[cycle % 3]), 1)
+      if cycle == 0:
+        messages.insert(0, wheels)
+      result = RI.update([(1_000_000_000 + cycle * 30_000_000, messages)])
+      assert len(result.points) == int(cycle >= 2)
+    assert abs(result.points[0].vRel) < .01
+    assert not RI.update([(1_510_000_000, messages)]).points
+    for invalid in ("0002802b9661f438", "0952802b9661f400"):
+      RI = self.camera_238_ri(0x255)
+      for cycle in range(4):
+        messages = self.camera_238_cycle(0x255, distance=0, object_id=0)
+        messages[0] = (0x238, bytes.fromhex(invalid), 1)
+        assert not RI.update([(1_000_000_000 + cycle * 30_000_000, [wheels, *messages])]).points
+
+  def test_camera_238_does_not_allocate_wheel_parser_for_other_families(self):
+    fp = gen_empty_fingerprint()
+    add_radar_range(fp, RADAR_235_248, 1)
+    add_radar_range(fp, RADAR_3A5_3C4, 1)
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fp, [], False, False, False)
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    assert RI.camera_ego_parser is None
+    RI.update([(1_000_000_000, [self.camera_238_wheels()])])
+    assert RI.camera_ego_parser is None
 
   def test_radar_602_track_validity(self):
     for distance, valid in ((0, False), (0.25, True), (255.5, True), (255.75, False)):
