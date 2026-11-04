@@ -10,7 +10,7 @@ from opendbc.car.fw_versions import build_fw_dict
 from opendbc.car.hyundai.interface import CarInterface
 from opendbc.car.hyundai.hyundaicanfd import CanBus
 from opendbc.car.hyundai.radar_interface import HYUNDAI_RADAR_TRACK_SPECS, RADAR_210_21F, RADAR_235_248, RADAR_3A5_3C4, \
-                                                RADAR_500_53F, RADAR_602_617, RadarInterface, get_detected_radar_tracks, \
+                                                RADAR_500_53F, RADAR_602_617, RadarInterface, decode_radar_track, get_detected_radar_tracks, \
                                                 is_radar_track_valid
 from opendbc.car.hyundai.values import CAMERA_SCC_CAR, CANFD_CAR, CAN_GEARS, CAR, CHECKSUM, DATE_FW_ECUS, \
                                          HYBRID_CAR, EV_CAR, FW_QUERY_CONFIG, LEGACY_SAFETY_MODE_CAR, CANFD_FUZZY_WHITELIST, \
@@ -390,6 +390,18 @@ class TestHyundaiFingerprint(unittest.TestCase):
     assert compact["1_NEW_SIGNAL_18"] == 1
     assert compact["1_LONG_DIST"] == 107.15
     assert compact["2_LONG_DIST"] == 204.75
+    # Captured detailed and compact dialects encode opposite lateral signs.
+    assert decode_radar_track(RADAR_210_21F, detailed, "1_")[1] == -2.5
+    assert decode_radar_track(RADAR_210_21F, detailed, "2_")[1] == 1.35
+    assert abs(decode_radar_track(RADAR_210_21F, compact, "1_")[1] - 3.65) < 1e-6
+
+  def test_radar_210_lateral_sign_uses_each_slot_state(self):
+    for prefix in RADAR_210_21F.track_prefixes:
+      for state, state_alt, expected_y in ((0, 2, 2.0), (0, 3, 2.0), (3, 2, -2.0), (4, 3, -2.0)):
+        with self.subTest(prefix=prefix, state=state, state_alt=state_alt):
+          track = {f"{prefix}STATE": state, f"{prefix}STATE_ALT": state_alt,
+                   f"{prefix}LONG_DIST": 42.0, f"{prefix}LAT_DIST": -2.0, f"{prefix}REL_SPEED": -8.0}
+          assert decode_radar_track(RADAR_210_21F, track, prefix) == (42.0, expected_y, -8.0)
 
   def test_radar_210_compact_state_fallback(self):
     for state, state_alt, valid in (
@@ -646,6 +658,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
     assert len(points) == 1
     assert points[0].motionState == 4
     assert points[0].trackAge == 27
+    assert points[0].yRel == 2
 
   def test_radar_interface_duplicate_range_selects_correct_cadence(self):
     fingerprint = gen_empty_fingerprint()

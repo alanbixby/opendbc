@@ -46,7 +46,7 @@ RADAR_210_21F_SIGNAL_COMMENTS = (
     "The raw unit is not calibrated; compact platforms leave it zero.",
   )),
   ("LONG_DIST", "Longitudinal distance from the ego radar. Empty compact slots may contain the 204.75 m endpoint sentinel."),
-  ("LAT_DIST", "Lateral position relative to the ego axis."),
+  ("LAT_DIST", "Lateral position relative to the ego axis: left-positive in the detailed dialect, right-positive in the compact dialect."),
   ("REL_SPEED", "Longitudinal speed relative to ego; negative means the target is moving longitudinally slower than ego."),
   ("NEW_SIGNAL_4", "Unknown category, observed 0-2 on detailed platforms. Compact platforms leave it zero."),
   ("REL_LAT_SPEED", _comment(
