@@ -16,7 +16,7 @@ MESSAGE_COMMENT = " ".join((
   "at 22-74 percent versus 0.3-10 percent with a seven-second time shift. Matched speed median errors are 0.01-0.08 m/s",
   "with 96.7-99.4 percent within 0.5 m/s. A stationary-only residual is not a decode-failure test: same-speed traffic",
   "produces the second Doppler/vEgo mode near zero, alongside stationary returns near minus one.",
-  "Sorting concatenated segment timestamps corrects the 26da stationary diagnostic to 0.570 / 0.557 m/s.",
+  "Sorting concatenated segment timestamps corrects the 26da stationary diagnostic to stationary fraction 0.570, median residual 0.557 m/s.",
   "The refined signed 13-bit Doppler field starts at record bit 48 with 0.025 m/s scale. On a6d25e segment 4,",
   "median error versus 210 drops from 0.02 to 0.01 m/s and gated RMS from 0.033 to 0.027 m/s versus the former",
   "12-bit bit-49 0.05 m/s interpretation. Longitudinal versus radial velocity semantics remain provisional.",
