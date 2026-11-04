@@ -1,5 +1,9 @@
 import copy
 import unittest
+import tempfile
+from pathlib import Path
+
+from opendbc.car.hyundai.hyundaicanfd import hkg_can_fd_checksum
 from opendbc.can import CANPacker, CANParser
 
 
@@ -90,6 +94,27 @@ class TestCanChecksums(unittest.TestCase):
 
       assert parser.vl['LKAS_HUD']['CHECKSUM'] == std
       assert parser.vl['LKAS_HUD_A']['CHECKSUM'] == ext
+
+  def test_hyundai_64_byte_canfd_checksum(self):
+    # Santa Cruz 2025, segment 0: capture-backed fixture covers every payload byte.
+    data = bytes.fromhex(
+      "5c176c600115885800167fc45d01f67f00000020021a8a7200167fc11701f67f" +
+      "0000002003f197313f195f80fb00f9ff00000020044b98bb3e165fc9f700f67f")
+    assert hkg_can_fd_checksum(0x510, None, bytearray(data)) == int.from_bytes(data[:2], "little")
+    with tempfile.TemporaryDirectory() as directory:
+      path = Path(directory) / "hyundai_canfd_generated_test_64.dbc"
+      signals = [
+        ' SG_ CHECKSUM : 0|16@1+ (1,0) [0|65535] "" XXX',
+        ' SG_ COUNTER : 16|8@1+ (1,0) [0|255] "" XXX',
+      ]
+      signals += [f' SG_ DATA_{byte} : {byte * 8}|8@1+ (1,0) [0|255] "" XXX' for byte in range(3, 64)]
+      path.write_text("BO_ 1296 TEST_64: 64 XXX\n" + "\n".join(signals) + "\n")
+      self.verify_checksum(str(path), "TEST_64", 0x510, [data])
+      parser = CANParser(str(path), [("TEST_64", 0)], 0)
+      assert parser.update([(1, [(0x510, data, 0)])]) == {0x510}
+      corrupt = bytearray(data)
+      corrupt[63] ^= 1
+      assert parser.update([(2, [(0x510, bytes(corrupt), 0)])]) == set()
 
   def test_hyundai_radar_210_canfd_checksum(self):
     self.verify_checksum("hyundai_radar_210_21f_generated", "RADAR_TRACK_210", 0x210, [

@@ -732,6 +732,55 @@ class TestHyundaiFingerprint(unittest.TestCase):
     for signal, expected in values.items():
       assert abs(decoded[signal] - expected) < 1e-6
 
+  def test_510_captured_frame_and_checksum(self):
+    # Santa Cruz 2025, 6e7904b03a4aafc2/00000010--31034184b6, segment 0.
+    data = bytes.fromhex(
+      "5c176c600115885800167fc45d01f67f00000020021a8a7200167fc11701f67f" +
+      "0000002003f197313f195f80fb00f9ff00000020044b98bb3e165fc9f700f67f")
+    parser = CANParser("hyundai_radar_detections_510_51f_generated", [("RADAR_DETECTIONS_510", 20)], 1)
+    assert parser.update([(1, [(0x510, data, 1)])]) == {0x510}
+    msg = parser.vl["RADAR_DETECTIONS_510"]
+    assert msg["COUNTER"] == 108
+    assert msg["DETECTION_0_VALID"] == 1
+    assert abs(msg["DETECTION_2_DOPPLER_CANDIDATE"] - -5.775) < 1e-6
+    assert abs(msg["DETECTION_0_LONG_POSITION_CANDIDATE"] - 20.69) < 1e-6
+    assert abs(msg["DETECTION_0_LAT_POSITION_CANDIDATE"] - 0.88) < 1e-6
+    assert abs(msg["DETECTION_0_DOPPLER_CANDIDATE"] - -5.85) < 1e-6
+    assert abs(msg["DETECTION_3_LONG_POSITION_CANDIDATE"] - 62.19) < 1e-6
+    # Corrupt payloads must be rejected, including corruption in the final payload byte.
+    bad = bytearray(data)
+    bad[63] ^= 1
+    assert parser.update([(2, [(0x510, bytes(bad), 1)])]) == set()
+
+  def test_510_empty_record_and_tucson_capture(self):
+    parser = CANParser("hyundai_radar_detections_510_51f_generated", [("RADAR_DETECTIONS_510", 20), ("RADAR_DETECTIONS_512", 20)], 1)
+    # Tucson 26da1db30eff4fcc/00000061--a60470e363, segment 1.
+    data = bytes.fromhex("5e637e60081c8564047734bce6e40a60000000400045875204de5dc2ebe41660000000400000885904d359c031e51d60000000600168896b04a77b8061e51860")
+    assert parser.update([(1, [(0x510, data, 1)])]) == {0x510}
+    assert abs(parser.vl[0x510]["DETECTION_0_LONG_POSITION_CANDIDATE"] - 13.08) < 1e-6
+    # Complete Santa Cruz empty message validates the sentinel independently.
+    empty = bytes.fromhex(
+      "e5e86c0000bc7f00000000b7000000000000000000bc7f00000000b700000000" +
+      "0000000000bc7f00000000b7000000000000000000bc7f00000000b700000000")
+    assert parser.update([(2, [(0x512, empty, 1)])]) == {0x512}
+    for record in range(4):
+      assert parser.vl[0x512][f"DETECTION_{record}_LONG_POSITION_CANDIDATE"] == 327
+      assert parser.vl[0x512][f"DETECTION_{record}_VALID"] == 0
+
+  def test_research_ranges_do_not_discover_esr_tracks(self):
+    fingerprint = gen_empty_fingerprint()
+    fingerprint[1].update({addr: 64 for addr in range(0x510, 0x520)})
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fingerprint, [], False, False, False)
+    assert get_detected_radar_tracks(CP) == ()
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    messages = [(addr, bytes(size), 1) for addr, size in fingerprint[1].items()]
+    RI._discover_radar_parsers([(1, messages)])
+    assert RI.radar_parsers == ()
+    # The overlapping DLC-8 family still discovers normally, including the 510-51F addresses.
+    messages = [(addr, bytes(8), 1) for addr in range(0x500, 0x540)]
+    RI._discover_radar_parsers([(2, messages)])
+    assert [(p.spec, p.bus) for p in RI.radar_parsers] == [(RADAR_500_53F, 1)]
+
   def test_radar_210_signal_layout(self):
     packer = CANPacker(RADAR_210_21F.dbc_name)
     parser = CANParser(RADAR_210_21F.dbc_name, [("RADAR_TRACK_210", RADAR_210_21F.frequency)], 1)
