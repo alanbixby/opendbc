@@ -7,6 +7,7 @@ def generate():
     geometry = (addr - 0x238) % 3 == 0
     parts.append(f"\nBO_ {addr} RADAR_TRACK_{addr:x}: 8 CAMERA\n")
     if geometry:
+      parts.append(f'CM_ BO_ {addr} "Publish only with confirmed dialect, 3 consistent cycles, range <=120 m, and fresh A ego speed.";\n')
       parts.append(''' SG_ LONG_DIST_B : 15|13@0+ (0.05,0) [0|409.55] "m" XXX
  SG_ LAT_DIST_B : 45|10@0- (0.05,0) [-25.6|25.55] "m" XXX
  SG_ REL_SPEED_B : 18|11@0+ (0.1,-100) [-100|104.7] "m/s" XXX
@@ -26,7 +27,7 @@ def generate():
         ("COUNTER_B", "High confidence 24-message dialect counter in low two bits of byte zero."),
         ("LONG_DIST", "High confidence geometry: leading 13 bits follow the vision lead. Range beyond nearby objects is less accurate than radar."),
         ("LAT_DIST", "High confidence sign/scale from vision: left positive. Upper boundary unexercised."),
-        ("OBJECT_SPEED", "LOW confidence absolute-speed candidate; subtract ego speed. Kinematic residuals remain; see report."),
+        ("OBJECT_SPEED", "Validated absolute speed against 500 radar; subtract fresh ego speed. Runtime confirmation gates noisy geometry."),
         ("COUNTER_A", "High confidence: increments modulo four every 30 ms, including empty slots."),
         ("OBJECT_ID", "Medium confidence persistent identity; zero accompanies empty geometry. Upper boundary unexercised."),
       ):

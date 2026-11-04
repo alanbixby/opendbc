@@ -118,18 +118,21 @@ class TestHyundaiFingerprint(unittest.TestCase):
         messages = [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 1, values if addr == 0x238 else {})
                     for addr in range(0x238, end_addr + 1)]
         wheels = wheel_packer.make_can_msg("WHL_SPD11", 0, {f"WHL_SPD_{wheel}": 36 for wheel in ("FL", "FR", "RL", "RR")})
-        result = RI.update([(1_000_000_000, [wheels, *messages])])
+        for cycle in range(6):
+          result = RI.update([(1_000_000_000 + cycle * 30_000_000, [wheels, *messages])])
         assert len(result.points) == 1
         point = result.points[0]
         assert (point.dRel, point.yRel, point.vRel) == (40, 2, 5)
         old_id = point.trackId
         values["OBJECT_ID" if end_addr == 0x255 else "OBJECT_ID_B"] = 8
         messages[0] = packer.make_can_msg("RADAR_TRACK_238", 1, values)
-        result = RI.update([(1_030_000_000, messages)])
+        for cycle in range(3):
+          result = RI.update([(1_180_000_000 + cycle * 30_000_000, [wheels, *messages])])
+          if cycle < 2:
+            assert not result.points
         assert result.points[0].trackId != old_id
-        # An empty geometry removes the object, regardless of companion bytes.
         messages[0] = packer.make_can_msg("RADAR_TRACK_238", 1, {})
-        assert not RI.update([(1_060_000_000, messages)]).points
+        assert not RI.update([(1_270_000_000, messages)]).points
 
   def test_camera_238_live_upgrade_and_missing_ego(self):
     CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, gen_empty_fingerprint(), [], False, False, False)
@@ -144,6 +147,121 @@ class TestHyundaiFingerprint(unittest.TestCase):
                 for addr in RADAR_238_255.address_range]
     # Absolute-speed dialect must not emit a relative-speed point without ego speed.
     assert not RI.update([(1_000_000_000, messages)]).points
+
+  @staticmethod
+  def camera_238_cycle(end_addr, distance=40, velocity=0, object_id=9, lateral=0):
+    packer = CANPacker(RADAR_238_255.dbc_name)
+    values = ({"LONG_DIST": distance, "LAT_DIST": lateral, "OBJECT_SPEED": velocity + 10, "OBJECT_ID": object_id}
+              if end_addr == 0x255 else
+              {"LONG_DIST_B": distance, "LAT_DIST_B": lateral, "REL_SPEED_B": velocity, "OBJECT_ID_B": object_id})
+    return [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 1, values if addr == 0x238 else {})
+            for addr in range(0x238, end_addr + 1)]
+
+  @staticmethod
+  def camera_238_ri(end_addr=None):
+    fp = gen_empty_fingerprint()
+    if end_addr:
+      add_radar_range(fp, RADAR_238_255, 1, end_addr=end_addr)
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fp, [], False, False, False)
+    return RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+
+  @staticmethod
+  def camera_238_wheels():
+    return CANPacker("hyundai_can_generated").make_can_msg("WHL_SPD11", 0,
+                                                         {f"WHL_SPD_{wheel}": 36 for wheel in ("FL", "FR", "RL", "RR")})
+
+  def test_camera_238_split_batch_startup(self):
+    RI = self.camera_238_ri()
+    # Exact A payload which was formerly emitted as B at startup, without ego.
+    prefix = [(addr, bytes.fromhex("64ca809b9a51f638") if addr == 0x238 else bytes(8), 1) for addr in range(0x238, 0x250)]
+    assert not RI.update([(1_000_000_000, prefix)]).points
+    parser = get_radar_parser(RI, RADAR_238_255, 1)
+    assert parser.camera_dialect is None
+    assert not RI._camera_238_eligible(parser)
+    # A's extension arrives in another CAN batch, after the B-looking cycle end.
+    upper = [(addr, bytes(8), 1) for addr in range(0x250, 0x256)]
+    assert not RI.update([(1_001_000_000, upper)]).points
+    parser = get_radar_parser(RI, RADAR_238_255, 1)
+    assert parser.camera_dialect == "A"
+    assert not RI._camera_238_eligible(parser)
+    # Correct A geometry is used once a complete track has confirmed with fresh ego.
+    for cycle in range(3):
+      result = RI.update([(1_030_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255)])])
+      assert len(result.points) == int(cycle == 2)
+    assert (result.points[0].dRel, result.points[0].yRel, result.points[0].vRel) == (40, 0, 0)
+
+  def test_camera_238_b_waits_for_complete_cycles(self):
+    RI = self.camera_238_ri()
+    for cycle in range(7):
+      messages = self.camera_238_cycle(0x24F)
+      timestamp = 1_000_000_000 + cycle * 30_000_000
+      # Split every required cycle into two real CAN batches.
+      assert RI.update([(timestamp, messages[:12])]) is None
+      result = RI.update([(timestamp + 1_000_000, messages[12:])])
+      assert len(result.points) == int(cycle == 6)
+      parser = get_radar_parser(RI, RADAR_238_255, 1)
+      assert (parser.camera_dialect is None) == (cycle < 4)
+
+  def test_camera_238_partial_extension_blocks_b(self):
+    RI = self.camera_238_ri()
+    for cycle in range(7):
+      messages = self.camera_238_cycle(0x24F)
+      if cycle == 0:
+        messages.append((0x250, bytes(8), 1))
+      result = RI.update([(1_000_000_000 + cycle * 30_000_000, messages)])
+      assert not result.points
+      assert get_radar_parser(RI, RADAR_238_255, 1).camera_dialect is None
+
+  def test_camera_238_repeated_timestamp_does_not_confirm(self):
+    RI = self.camera_238_ri(0x255)
+    messages = [self.camera_238_wheels(), *self.camera_238_cycle(0x255)]
+    assert not RI.update([(1_000_000_000, messages)]).points
+    for cycle in range(1, 6):
+      # Other frames/cycle ends cannot stand in for a new observation of this object.
+      assert not RI.update([(1_000_000_000 + cycle * 30_000_000, [(0x255, bytes(8), 1)])]).points
+    assert next(iter(RI.camera_238_confirmations.values())).consecutive == 1
+
+  def test_camera_238_jump_retires_then_reconfirms(self):
+    RI = self.camera_238_ri(0x255)
+    for cycle in range(3):
+      result = RI.update([(1_000_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255, 80 - .3 * cycle, -10)])])
+      assert len(result.points) == int(cycle == 2)
+    old_id = result.points[0].trackId
+    # Same native ID, impossible distance jump: remove immediately, then require K again.
+    for cycle in range(3):
+      result = RI.update([(1_090_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255, 30 - .3 * cycle, -10)])])
+      assert len(result.points) == int(cycle == 2)
+    assert result.points[0].trackId != old_id
+    assert result.points[0].vRel == -10
+    # A lateral jump also retires the point immediately.
+    result = RI.update([(1_180_000_000, [self.camera_238_wheels(), *self.camera_238_cycle(0x255, 29.1, -10, lateral=5)])])
+    assert not result.points
+
+  def test_camera_238_rejects_reported_niro_jump(self):
+    RI = self.camera_238_ri(0x24F)
+    for cycle in range(8):
+      messages = self.camera_238_cycle(0x24F)
+      messages[0] = (0x238, bytes.fromhex("2489b3340036c140" if cycle < 4 else "2466d2b60039b142"), 1)
+      assert not RI.update([(182_196_715_606 + cycle * 30_000_000, messages)]).points
+
+  def test_camera_238_wheel_freshness_boundary(self):
+    RI = self.camera_238_ri(0x255)
+    for elapsed in range(0, 480_000_001, 30_000_000):
+      messages = self.camera_238_cycle(0x255)
+      if elapsed == 0:
+        messages.insert(0, self.camera_238_wheels())
+      result = RI.update([(1_000_000_000 + elapsed, messages)])
+    assert result.points
+    assert RI.update([(1_500_000_000, self.camera_238_cycle(0x255))]).points
+    assert not RI.update([(1_500_000_001, self.camera_238_cycle(0x255))]).points
+    assert not RI._camera_238_eligible(get_radar_parser(RI, RADAR_238_255, 1))
+    for cycle in range(3):
+      result = RI.update([(1_530_000_000 + cycle * 30_000_000,
+                           [self.camera_238_wheels(), *self.camera_238_cycle(0x255)])])
+      assert len(result.points) == int(cycle == 2)
 
   def test_radar_602_track_validity(self):
     for distance, valid in ((0, False), (0.25, True), (255.5, True), (255.75, False)):
