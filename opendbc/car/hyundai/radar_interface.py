@@ -1,5 +1,6 @@
 import math
 from collections import deque
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
 from opendbc.can import CANParser
@@ -29,6 +30,8 @@ class HyundaiRadarTrackSpec:
   source_kind: str = "radar"
   required_msg_count: int | None = None
   addresses: tuple[int, ...] = ()
+  # Opt in to ID identity. Return None for invalid objects or companion messages.
+  camera_object_id: Callable[[int, Mapping[str, float], str], int | None] | None = None
 
   @property
   def end_addr(self) -> int:
@@ -72,6 +75,7 @@ class HyundaiRadarParserConfig:
   end_addr: int
   parser: CANParser
   cycle_timestamps: deque[int] = field(default_factory=lambda: deque(maxlen=100))
+  startup_seen_addrs: set[int] = field(default_factory=set)
 
   @property
   def address_range(self) -> range | tuple[int, ...]:
@@ -109,12 +113,17 @@ RADAR_602_617 = HyundaiRadarTrackSpec(
   frequency=10, message_size=8,
 )
 
+def get_alt_camera_object_id(addr: int, track_msg: Mapping[str, float], prefix: str) -> int | None:
+  object_id = int(track_msg[f"{prefix}OBJECT_ID"])
+  return object_id if object_id != 0 and 0 < track_msg[f"{prefix}LONG_DIST"] <= 120 else None
+
+
 RADAR_180_1B9 = HyundaiRadarTrackSpec(
   "RADAR_180_1B9", 0x180, 9, ("1_", "2_"),
   tuple(f"{prefix}{signal}" for prefix in ("1_", "2_")
         for signal in ("OBJECT_ID", "LONG_DIST", "LAT_DIST", "REL_SPEED", "AGE", "MOTION_STATE")),
   frequency=33, message_size=32, source_kind="camera",
-  addresses=(*range(0x180, 0x185), *range(0x1B6, 0x1BA)),
+  addresses=(*range(0x180, 0x185), *range(0x1B6, 0x1BA)), camera_object_id=get_alt_camera_object_id,
 )
 
 HYUNDAI_RADAR_TRACK_SPECS = (RADAR_180_1B9, RADAR_500_53F, RADAR_210_21F, RADAR_235_248, RADAR_3A5_3C4, RADAR_602_617)
@@ -160,6 +169,22 @@ def get_track_storage_key(radar_spec: HyundaiRadarTrackSpec, addr: int, track_pr
 
   track_index = int(track_prefix[0]) - 1
   return (radar_spec.name, addr * 2 + track_index)
+
+
+def get_camera_track_identity(spec: HyundaiRadarTrackSpec, addr: int, track_msg, prefix: str) -> HyundaiRadarTrackKey | None:
+  """Opt-in identity/validity hook; companion messages can return None without an ID field."""
+  if spec.source_kind != "camera" or spec.camera_object_id is None:
+    return None
+  object_id = spec.camera_object_id(addr, track_msg, prefix)
+  return (spec.name, object_id) if object_id is not None else None
+
+
+def camera_track_id_reused(previous, dt: float, geometry: tuple[float, float, float]) -> bool:
+  """Conservative reuse guard; allow quantization/noise but reject implausible per-ID jumps."""
+  distance, lateral, speed = geometry
+  predicted_distance = previous.dRel + (previous.vRel + speed) * 0.5 * dt
+  return (dt < 0 or abs(distance - predicted_distance) > 5 + 10 * dt or
+          abs(lateral - previous.yRel) > 3 + 5 * dt or abs(speed - previous.vRel) > 15 + 5 * dt)
 
 
 def get_track_ts_nanos(parser: CANParser, msg_name: str, radar_spec: HyundaiRadarTrackSpec, track_prefix: str) -> int:
@@ -230,9 +255,12 @@ def get_radar_track_motion_state(radar_spec: HyundaiRadarTrackSpec, track_msg, t
   return motion_state
 
 
-def is_radar_track_valid(radar_spec: HyundaiRadarTrackSpec, track_msg, track_prefix: str) -> bool:
+def is_radar_track_valid(radar_spec: HyundaiRadarTrackSpec, track_msg, track_prefix: str, addr: int | None = None) -> bool:
   if radar_spec.name == "RADAR_602_617":
     return 0 < track_msg[f"{track_prefix}DISTANCE"] < 255.75
+
+  if radar_spec.source_kind == "camera" and radar_spec.camera_object_id is not None:
+    return get_camera_track_identity(radar_spec, addr if addr is not None else radar_spec.start_addr, track_msg, track_prefix) is not None
 
   if radar_spec.source_kind == "camera":
     return int(track_msg[f"{track_prefix}OBJECT_ID"]) != 0
@@ -254,7 +282,7 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     self.updated_messages: set[tuple[int, int]] = set()
     self.pending_radar_can: dict[tuple[str, int], list] = {}
     self.active_radar_buses: dict[str, int] = {}
-    self.camera_object_ids: dict[HyundaiRadarTrackKey, int] = {}
+    self.camera_track_timestamps: dict[HyundaiRadarTrackKey, int] = {}
     self.can_time_nanos = 0
     self.trigger_msg = DEFAULT_RADAR_TRIGGER_MSG
 
@@ -345,10 +373,11 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     self.updated_messages.clear()
     self.pending_radar_can.clear()
     self.active_radar_buses.clear()
-    self.camera_object_ids.clear()
+    self.camera_track_timestamps.clear()
     self.can_time_nanos = 0
     for radar_parser in self.radar_parsers:
       radar_parser.cycle_timestamps.clear()
+      radar_parser.startup_seen_addrs.clear()
 
     if radar_mode == RadarType.FULL_RADAR:
       self.trigger_msg = max((track.end_addr for track in self.radar_tracks), default=DEFAULT_RADAR_TRIGGER_MSG)
@@ -419,6 +448,7 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
         if addr in radar_parser.address_range
       }
       if relevant_addrs:
+        radar_parser.startup_seen_addrs.update(relevant_addrs)
         self.seen_radar_addrs.setdefault((radar_parser.spec.name, radar_parser.bus), set()).update(relevant_addrs)
         self.updated_messages.update((radar_parser.bus, addr) for addr in relevant_addrs)
         for timestamp in cycle_end_timestamps:
@@ -447,9 +477,11 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
       msg_name = f"RADAR_TRACK_{addr:x}"
       msg = radar_parser.parser.vl[msg_name]
       for track_prefix in radar_parser.spec.track_prefixes:
+        if radar_parser.spec.camera_object_id is not None and get_camera_track_identity(radar_parser.spec, addr, msg, track_prefix) is None:
+          continue
         if get_track_ts_nanos(radar_parser.parser, msg_name, radar_parser.spec, track_prefix) == 0:
           continue
-        if is_radar_track_valid(radar_parser.spec, msg, track_prefix):
+        if is_radar_track_valid(radar_parser.spec, msg, track_prefix, addr):
           valid_count += 1
     return valid_count
 
@@ -492,28 +524,42 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     self.active_radar_buses[best_parser.spec.name] = best_parser.bus
     return best_parser
 
-  def _update_radar_points_from_parser(self, radar_parser: HyundaiRadarParserConfig) -> int:
+  def _update_radar_points_from_parser(self, radar_parser: HyundaiRadarParserConfig, own_cycle: bool = True,
+                                       updated_messages: set[tuple[int, int]] | None = None) -> int:
+    use_camera_identity = radar_parser.spec.source_kind == "camera" and radar_parser.spec.camera_object_id is not None
+    if use_camera_identity and not own_cycle:
+      return sum(isinstance(key, tuple) and key[0] == radar_parser.spec.name for key in self.pts)
+    seen_keys: set[HyundaiRadarTrackKey] = set()
     track_count = 0
     for addr in radar_parser.address_range:
+      if use_camera_identity and updated_messages is not None and (radar_parser.bus, addr) not in updated_messages:
+        continue
       msg_name = f"RADAR_TRACK_{addr:x}"
       msg = radar_parser.parser.vl[msg_name]
       for track_prefix in radar_parser.spec.track_prefixes:
-        track_key = get_track_storage_key(radar_parser.spec, addr, track_prefix)
-        if radar_parser.spec == RADAR_180_1B9:
-          object_id = int(msg[f"{track_prefix}OBJECT_ID"])
-          if self.camera_object_ids.get(track_key) != object_id:
-            self.pts.pop(track_key, None)
-          self.camera_object_ids[track_key] = object_id
-        if get_track_ts_nanos(radar_parser.parser, msg_name, radar_parser.spec, track_prefix) != 0 and \
-           is_radar_track_valid(radar_parser.spec, msg, track_prefix):
+        track_key = (get_camera_track_identity(radar_parser.spec, addr, msg, track_prefix) if use_camera_identity else
+                     get_track_storage_key(radar_parser.spec, addr, track_prefix))
+        if track_key is None:
+          continue
+        timestamp = get_track_ts_nanos(radar_parser.parser, msg_name, radar_parser.spec, track_prefix)
+        if timestamp != 0 and is_radar_track_valid(radar_parser.spec, msg, track_prefix, addr):
+          seen_keys.add(track_key)
           track_count += 1
+          geometry = decode_radar_track(radar_parser.spec, msg, track_prefix)
+          if use_camera_identity:
+            previous = self.pts.get(track_key)
+            if previous is not None:
+              elapsed = (timestamp - self.camera_track_timestamps[track_key]) * 1e-9
+              if camera_track_id_reused(previous, elapsed, geometry):
+                self.pts.pop(track_key)
+            self.camera_track_timestamps[track_key] = timestamp
           if track_key not in self.pts:
             self.pts[track_key] = structs.RadarData.RadarPoint()
             self.pts[track_key].trackId = self.track_id
             self.track_id += 1
 
           full_variant = radar_parser.end_addr == radar_parser.spec.end_addr
-          d_rel, y_rel, v_rel = decode_radar_track(radar_parser.spec, msg, track_prefix)
+          d_rel, y_rel, v_rel = geometry
           pt = self.pts[track_key]
           pt.dRel = d_rel
           pt.yRel = y_rel
@@ -525,10 +571,18 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
             pt.motionState = get_radar_track_motion_state(radar_parser.spec, msg, track_prefix) if has_track_metadata else 0
           pt.sourceAddress = addr
           pt.sourceBus = radar_parser.bus
-          pt.trackAge = int(msg[f"{track_prefix}AGE"]) if has_track_metadata else min(pt.trackAge + 1, 65535)
+          if has_track_metadata:
+            pt.trackAge = int(msg[f"{track_prefix}AGE"])
+          elif own_cycle:
+            pt.trackAge = min(pt.trackAge + 1, 65535)
         elif track_key in self.pts:
           del self.pts[track_key]
-    return track_count
+    if use_camera_identity:
+      for key in list(self.pts):
+        if isinstance(key, tuple) and key[0] == radar_parser.spec.name and key not in seen_keys:
+          self.pts.pop(key)
+          self.camera_track_timestamps.pop(key, None)
+    return len(seen_keys) if use_camera_identity else track_count
 
   def _update(self, updated_messages):
     ret = structs.RadarData()
@@ -555,15 +609,23 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
         parser = self._select_active_radar_parser(radar_parsers)
         active_radar_parsers.append(parser)
         if self._parser_fresh(parser):
-          track_count = self._update_radar_points_from_parser(parser)
+          own_cycle = not self.can_time_nanos or (parser.bus, parser.end_addr) in updated_messages
+          track_count = self._update_radar_points_from_parser(parser, own_cycle,
+                                                             set(updated_messages) if self.can_time_nanos else None)
         else:
           # Expire only at cycle-driven publication; a silent source cannot add output ticks.
           self.pts = {key: point for key, point in self.pts.items()
                       if not isinstance(key, tuple) or key[0] != parser.spec.name}
+          self.camera_track_timestamps = {key: timestamp for key, timestamp in self.camera_track_timestamps.items()
+                                          if key[0] != parser.spec.name}
           track_count = 0
         active_radar_sources.append((parser, track_count))
 
-    if any(not radar_parser.parser.can_valid for radar_parser in active_radar_parsers):
+    # Alt camera cycles can trigger before a pre-existing radar has completed a cycle.
+    # Preserve existing families' startup/error behavior on cars without this new list.
+    alt_camera_present = any(rp.spec == RADAR_180_1B9 for rp in active_radar_parsers)
+    if any(not rp.parser.can_valid for rp in active_radar_parsers
+           if not alt_camera_present or all(addr in rp.startup_seen_addrs for addr in rp.address_range)):
       ret.errors.canError = True
 
     ret.trackSources = [{

@@ -108,7 +108,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
       msg = parser.vl["RADAR_TRACK_180"]
       for name, expected in zip(("OBJECT_ID", "LONG_DIST", "LAT_DIST", "REL_SPEED"), (oid, distance, lateral, speed), strict=True):
         assert math.isclose(msg[f"1_{name}"], expected, abs_tol=1e-6)
-      assert is_radar_track_valid(RADAR_180_1B9, msg, "1_")
+      assert is_radar_track_valid(RADAR_180_1B9, msg, "1_") == (distance <= 120)
       msg["1_OBJECT_ID"] = 0
       assert not is_radar_track_valid(RADAR_180_1B9, msg, "1_")
 
@@ -1232,3 +1232,99 @@ class TestHyundaiSourceCoexistence(unittest.TestCase):
     message.trackSources = [{"startAddress": 0x235, "sourceKind": 1}, {"startAddress": 0x3A5, "sourceKind": 0}]
     with structs.RadarData.from_bytes(message.to_bytes()) as parsed:
       assert [source.sourceKind for source in parsed.trackSources] == [1, 0]
+
+
+class TestHyundaiAltIdentity(unittest.TestCase):
+  make_interface = TestHyundaiSourceCoexistence.make_interface
+
+  def make_camera_cycle(self):
+    ri, _, _ = self.make_interface()
+    packer = CANPacker(RADAR_180_1B9.dbc_name)
+
+    def cycle(ms, objects):
+      values = {}
+      for addr, prefix, oid, distance, lateral, speed in objects:
+        values.setdefault(addr, {}).update({f"{prefix}OBJECT_ID": oid, f"{prefix}LONG_DIST": distance,
+                                            f"{prefix}LAT_DIST": lateral, f"{prefix}REL_SPEED": speed})
+      frames = [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 2, values.get(addr, {})) for addr in RADAR_180_1B9.address_range]
+      return ri.update([(ms * 1000000 + 1, frames)])
+    return ri, cycle
+
+  def test_id_migrates_across_messages_and_prefixes(self):
+    _, cycle = self.make_camera_cycle()
+    first = cycle(0, [(0x180, "1_", 128, 20, 1, -2)])
+    track_id = first.points[0].trackId
+    for ms, addr, prefix in ((30, 0x181, "2_"), (60, 0x1B6, "1_"), (90, 0x180, "2_")):
+      result = cycle(ms, [(addr, prefix, 128, 20 - ms * .002, 1, -2)])
+      assert len(result.points) == 1
+      assert result.points[0].trackId == track_id
+      assert result.points[0].sourceAddress == addr
+    assert not cycle(120, []).points
+    assert cycle(150, [(0x180, "1_", 128, 20, 1, -2)]).points[0].trackId != track_id
+
+  def test_reused_id_geometry_jump_starts_new_track(self):
+    _, cycle = self.make_camera_cycle()
+    old_id = cycle(0, [(0x180, "1_", 7, 20, 1, -2)]).points[0].trackId
+    next_id = cycle(30, [(0x181, "2_", 7, 90, 1, -2)]).points[0].trackId
+    assert next_id != old_id
+    assert cycle(60, [(0x181, "2_", 7, 90, 12, -2)]).points[0].trackId != next_id
+
+  def test_alt_distance_validity_bounds(self):
+    _, cycle = self.make_camera_cycle()
+    for ms, distance, valid in ((0, 0, False), (30, .05, True), (60, 120, True), (90, 120.05, False), (120, 250, False)):
+      assert bool(cycle(ms, [(0x180, "1_", 128, distance, 3, -45)]).points) == valid
+
+  def test_identity_accessor_can_skip_companion_without_id(self):
+    from dataclasses import replace
+    from opendbc.car.hyundai.radar_interface import get_camera_track_identity
+
+    def identity(addr, msg, prefix):
+      return int(msg["DIALECT_ID"]) if addr == 0x180 and msg["DIALECT_VALID"] else None
+
+    spec = replace(RADAR_180_1B9, camera_object_id=identity)
+    assert get_camera_track_identity(spec, 0x180, {"DIALECT_VALID": 1, "DIALECT_ID": 91}, "") == (spec.name, 91)
+    assert get_camera_track_identity(spec, 0x180, {"DIALECT_VALID": 0}, "") is None
+    assert get_camera_track_identity(spec, 0x1B9, {}, "") is None
+
+  def test_captured_eight_bit_ids_and_width_boundary(self):
+    parser = CANParser(RADAR_180_1B9.dbc_name, [("RADAR_TRACK_183", 33), ("RADAR_TRACK_180", 33)], 1)
+    # Palisade 464ac801173f6dca/00000382--27ce9e4ade segment 2, raw captured frames.
+    parser.update([(1, [(0x183, bytes.fromhex("8472382311080822bd4511e22cb801d0d90800000000000000000000000000d0"), 1),
+                        (0x180, bytes.fromhex("3ff4072dffb56622194200e23ef4f15f15d9962315f53922170012a241efd15f"), 1)])])
+    assert parser.vl["RADAR_TRACK_183"]["1_OBJECT_ID"] == 128
+    assert math.isclose(parser.vl["RADAR_TRACK_183"]["1_LONG_DIST"], 73.45)
+    assert math.isclose(parser.vl["RADAR_TRACK_183"]["1_LAT_DIST"], 3.45)
+    assert math.isclose(parser.vl["RADAR_TRACK_183"]["1_REL_SPEED"], -28.2)
+    assert is_radar_track_valid(RADAR_180_1B9, parser.vl["RADAR_TRACK_183"], "1_")
+    assert parser.vl["RADAR_TRACK_180"]["2_OBJECT_ID"] == 159
+    packer = CANPacker(RADAR_180_1B9.dbc_name)
+    for oid in (128, 255):
+      parser.update([(2, [packer.make_can_msg("RADAR_TRACK_180", 1, {"1_OBJECT_ID": oid, "1_WIDTH": 2.35})])])
+      assert parser.vl["RADAR_TRACK_180"]["1_OBJECT_ID"] == oid
+      assert math.isclose(parser.vl["RADAR_TRACK_180"]["1_WIDTH"], 2.35)
+
+  def test_alt_startup_and_mode_switch_error_grace(self):
+    ri, cycle, messages = self.make_interface()
+    packer = CANPacker(RADAR_180_1B9.dbc_name)
+    for ms in (0, 100):
+      if ms:
+        ri.set_radar_mode(RadarType.OFF)
+        ri.set_radar_mode(RadarType.FULL_RADAR)
+      # First output is a partial cycle, with both parsers fingerprinted but not initialized.
+      partial = packer.make_can_msg("RADAR_TRACK_1b9", 2, {})
+      first = ri.update([(ms * 1000000 + 1, [partial])])
+      assert not first.errors.canError
+      assert not cycle(ms + 10).errors.canError
+      assert not cycle(ms + 20, radar=True).errors.canError
+
+  def test_synthetic_age_advances_only_on_own_source_cycle(self):
+    ri, cycle, _ = self.make_interface(RADAR_235_248, RADAR_500_53F)
+    first = cycle(0, radar=True)
+    radar_point = next(point for point in first.points if point.sourceAddress == 0x500)
+    assert radar_point.trackAge == 1
+    for ms in (30, 60, 90):
+      result = cycle(ms)
+      point = next(point for point in result.points if point.sourceAddress == 0x500)
+      assert point.trackAge == 1
+    result = cycle(100, radar=True)
+    assert next(point for point in result.points if point.sourceAddress == 0x500).trackAge == 2
