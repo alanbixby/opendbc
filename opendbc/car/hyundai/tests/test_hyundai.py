@@ -389,11 +389,12 @@ class TestHyundaiFingerprint(unittest.TestCase):
     assert compact["1_OBJECT_ID"] == 28
     assert compact["1_NEW_SIGNAL_18"] == 1
     assert compact["1_LONG_DIST"] == 107.15
+    assert math.isclose(compact["1_REL_LAT_SPEED"], -0.14, abs_tol=1e-6)
     assert compact["2_LONG_DIST"] == 204.75
     # Preserve wire signs until a source convention can be established safely.
     assert decode_radar_track(RADAR_210_21F, detailed, "1_")[1] == -2.5
     assert decode_radar_track(RADAR_210_21F, detailed, "2_")[1] == 1.35
-    assert abs(decode_radar_track(RADAR_210_21F, compact, "1_")[1] + 3.65) < 1e-6
+    assert math.isclose(decode_radar_track(RADAR_210_21F, compact, "1_")[1], -3.65, abs_tol=1e-6)
 
   def test_radar_210_gv70_compact_left_frame(self):
     parser = CANParser(RADAR_210_21F.dbc_name, [("RADAR_TRACK_211", 20)], 0)
@@ -403,7 +404,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
     assert msg["1_STATE"] == 0
     assert msg["1_STATE_ALT"] == 2
     assert msg["1_OBJECT_ID"] == 0
-    assert abs(decode_radar_track(RADAR_210_21F, msg, "1_")[1] - 4.2) < 1e-6
+    assert math.isclose(decode_radar_track(RADAR_210_21F, msg, "1_")[1], 4.2, abs_tol=1e-6)
 
   def test_radar_210_state_and_id_do_not_select_lateral_sign(self):
     for prefix in RADAR_210_21F.track_prefixes:
@@ -415,6 +416,66 @@ class TestHyundaiFingerprint(unittest.TestCase):
                      f"{prefix}REL_LAT_SPEED": 1.5}
             assert decode_radar_track(RADAR_210_21F, track, prefix) == (42.0, -2.0, -8.0)
             assert track[f"{prefix}REL_LAT_SPEED"] == 1.5
+
+  def test_radar_210_companion_fingerprint_sign(self):
+    compact_frame = bytes.fromhex("af99c522440100005f78fb4e35f21f007100000000000000ff0f000000000000")
+    gv70_frame = bytes.fromhex("2b81a40a22140000494105fb3feb5fff0101000a24ff0000b9e10a0000350000")
+    for bus in (0, 1, 2):
+      for companion_bus, dlc, count, expected in ((bus, 64, 16, 3.65), (bus, 8, 16, -3.65),
+                                                  (bus, 64, 15, -3.65), ((bus + 1) % 3, 64, 16, -3.65)):
+        with self.subTest(bus=bus, companion_bus=companion_bus, dlc=dlc, count=count):
+          fingerprint = gen_empty_fingerprint()
+          add_radar_range(fingerprint, RADAR_210_21F, bus)
+          fingerprint[companion_bus].update({addr: dlc for addr in range(0x510, 0x510 + count)})
+          CP = CarInterface.get_params(CAR.HYUNDAI_TUCSON_4TH_GEN, fingerprint, [], False, False, False)
+          RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+          parser = get_radar_parser(RI, RADAR_210_21F, bus).parser
+          parser.update([(1, [(0x214, compact_frame, bus)])])
+          point = RI._update(set()).points[0]
+          assert math.isclose(point.yRel, expected, abs_tol=1e-6)
+          assert math.isclose(point.dRel, 107.15, abs_tol=1e-5)
+          assert math.isclose(point.vRel, parser.vl["RADAR_TRACK_214"]["1_REL_SPEED"], abs_tol=1e-5)
+
+      # Compact-left captured frame with no companion must preserve +4.20 m.
+      fingerprint = gen_empty_fingerprint()
+      add_radar_range(fingerprint, RADAR_210_21F, bus)
+      CP = CarInterface.get_params(CAR.HYUNDAI_TUCSON_4TH_GEN, fingerprint, [], False, False, False)
+      RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+      get_radar_parser(RI, RADAR_210_21F, bus).parser.update([(1, [(0x211, gv70_frame, bus)])])
+      assert math.isclose(RI._update(set()).points[0].yRel, 4.2, abs_tol=1e-6)
+
+  def test_radar_210_companion_live_latch_and_source_lifecycle(self):
+    fingerprint = gen_empty_fingerprint()
+    add_radar_range(fingerprint, RADAR_210_21F, 2)
+    CP = CarInterface.get_params(CAR.HYUNDAI_TUCSON_4TH_GEN, fingerprint, [], False, False, False)
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    parser = get_radar_parser(RI, RADAR_210_21F, 2).parser
+    msg = parser.vl["RADAR_TRACK_210"]
+    for prefix in ("1_", "2_"):
+      msg.update({f"{prefix}STATE": 0, f"{prefix}STATE_ALT": 2, f"{prefix}LONG_DIST": 40,
+                  f"{prefix}LAT_DIST": 2, f"{prefix}REL_SPEED": -3})
+      mark_track_updated(parser, RADAR_210_21F, 0x210, prefix)
+    assert all(p.yRel == 2 for p in RI._update(set()).points)
+    # Wrong DLC and wrong bus cannot establish the companion signature.
+    RI.update([(2, [(a, bytes(8), 2) for a in range(0x510, 0x520)] + [(a, bytes(64), 1) for a in range(0x510, 0x520)])])
+    assert all(p.yRel == 2 for p in RI._update(set()).points)
+    for addr in range(0x510, 0x51f):
+      RI.update([(3 + addr, [(addr, bytes(64), 2)])])
+    assert all(p.yRel == 2 for p in RI._update(set()).points)
+    RI.update([(2000, [(0x51f, bytes(64), 2)])])
+    assert all(p.yRel == -2 for p in RI._update(set()).points)
+    # Companion presence is latched even if its traffic disappears or changes DLC.
+    RI.update([(3000, [(0x510, bytes(8), 2)])])
+    assert all(p.yRel == -2 for p in RI._update(set()).points)
+    msg["1_LAT_DIST"] = 0.0
+    zero_point = RI._update(set()).points[0]
+    assert zero_point.yRel == 0 and math.copysign(1, zero_point.yRel) == 1
+    msg["1_LAT_DIST"] = 2
+    # Detailed evidence on one slot prevents flipping every slot of this source.
+    msg["2_STATE"] = 3
+    assert all(p.yRel == 2 for p in RI._update(set()).points)
+    msg["2_STATE"] = 0
+    assert all(p.yRel == 2 for p in RI._update(set()).points)
 
   def test_radar_210_compact_state_fallback(self):
     for state, state_alt, valid in (
