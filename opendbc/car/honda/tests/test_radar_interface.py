@@ -72,5 +72,10 @@ def test_bosch_without_radar_reports_no_source():
   cp, radar = make_radar(CAR.ACURA_MDX_4G_MMR)
   assert cp.radarUnavailable
   assert radar.rcp is None
-  result = radar.update(None)
-  assert result is None or (not result.points and not result.trackSources and not result.radarTracksAvailable)
+  results = [radar.update(None) for _ in range(5)]
+  assert results[:4] == [None] * 4
+  result = results[4]
+  assert result is not None
+  assert not result.points
+  assert not result.trackSources
+  assert not result.radarTracksAvailable
