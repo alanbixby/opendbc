@@ -370,6 +370,73 @@ class TestHyundaiFingerprint(unittest.TestCase):
     assert cycle(2).points[0].trackId != old_id
     assert not cycle(0).points
 
+  def test_camera_238_captured_b_id_zero_and_companions(self):
+    RI = self.camera_238_ri(0x24F)
+    for cycle in range(4):
+      RI.update([(1_000_000_000 + cycle * 30_000_000, self.camera_238_cycle(0x24F, distance=0, object_id=0))])
+    # Niro EV b27d segment 6: real ID-0 object in slot 0x23b.
+    captures = ("020584070003a141", "010594070003a141", "0005a4060003a141")
+    for cycle, capture in enumerate(captures):
+      messages = self.camera_238_cycle(0x24F, distance=0, object_id=0)
+      messages[3] = (0x23B, bytes.fromhex(capture), 1)
+      # Companions do not contain OBJECT_ID, geometry, or motion fields.
+      messages[1] = (0x239, bytes.fromhex("037d07d07d000000"), 1)
+      result = RI.update([(1_150_000_000 + cycle * 30_000_000, messages)])
+      assert len(result.points) == int(cycle == 2)
+    point = result.points[0]
+    assert math.isclose(point.dRel, 9)
+    assert math.isclose(point.yRel, 2.9, abs_tol=1e-5)
+    assert math.isclose(point.vRel, 3)
+    parser = get_radar_parser(RI, RADAR_238_255, 1)
+    assert 0x239 not in parser.parser.addresses
+    assert set(parser.parser.vl["RADAR_TRACK_238"]) == {"LONG_DIST_B", "LAT_DIST_B", "REL_SPEED_B", "OBJECT_ID_B"}
+    assert RI.camera_ego_parser is None
+    assert not RI.update([(1_240_000_000, self.camera_238_cycle(0x24F, distance=0, object_id=0))]).points
+
+  def test_camera_238_captured_rails_are_not_geometry(self):
+    for captured in ("165a53ad001fe140", "2057d40900600141"):
+      RI = self.camera_238_ri(0x24F)
+      frame = bytearray.fromhex(captured)
+      # Preserve captured rail bits and ID; lower range to 20 m so this test
+      # specifically rejects the lateral rail rather than the range cap.
+      distance_raw = 400
+      frame[1], frame[2] = distance_raw >> 5, ((distance_raw & 31) << 3) | (frame[2] & 7)
+      for cycle in range(8):
+        messages = self.camera_238_cycle(0x24F, distance=0, object_id=0)
+        messages[0] = (0x238, bytes(frame), 1)
+        assert not RI.update([(1_000_000_000 + cycle * 30_000_000, messages)]).points
+
+  def test_camera_238_captured_a_validity_and_stale_wheels(self):
+    captures = ("0952802b9661f438", "0952802b9665f438", "0952802b9669f438")
+    wheels = CANPacker("hyundai_can_generated").make_can_msg("WHL_SPD11", 0,
+                                                           {f"WHL_SPD_{wheel}": 72.72 for wheel in ("FL", "FR", "RL", "RR")})
+    RI = self.camera_238_ri(0x255)
+    for cycle in range(17):
+      messages = self.camera_238_cycle(0x255, distance=0, object_id=0)
+      messages[0] = (0x238, bytes.fromhex(captures[cycle % 3]), 1)
+      if cycle == 0:
+        messages.insert(0, wheels)
+      result = RI.update([(1_000_000_000 + cycle * 30_000_000, messages)])
+      assert len(result.points) == int(cycle >= 2)
+    assert abs(result.points[0].vRel) < .01
+    assert not RI.update([(1_510_000_000, messages)]).points
+    for invalid in ("0002802b9661f438", "0952802b9661f400"):
+      RI = self.camera_238_ri(0x255)
+      for cycle in range(4):
+        messages = self.camera_238_cycle(0x255, distance=0, object_id=0)
+        messages[0] = (0x238, bytes.fromhex(invalid), 1)
+        assert not RI.update([(1_000_000_000 + cycle * 30_000_000, [wheels, *messages])]).points
+
+  def test_camera_238_does_not_allocate_wheel_parser_for_other_families(self):
+    fp = gen_empty_fingerprint()
+    add_radar_range(fp, RADAR_235_248, 1)
+    add_radar_range(fp, RADAR_3A5_3C4, 1)
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fp, [], False, False, False)
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    assert RI.camera_ego_parser is None
+    RI.update([(1_000_000_000, [self.camera_238_wheels()])])
+    assert RI.camera_ego_parser is None
+
   def test_radar_602_track_validity(self):
     for distance, valid in ((0, False), (0.25, True), (255.5, True), (255.75, False)):
       with self.subTest(distance=distance):
