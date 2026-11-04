@@ -135,6 +135,10 @@ class TestHyundaiFingerprint(unittest.TestCase):
     assert not detect_radar_tracks(fp)
     fp[1][0x1B6] = 32
     CP = CarInterface.get_params(CAR.GENESIS_GV70_1ST_GEN, fp, [], False, False, False)
+    assert CP.radarUnavailable
+    off = RadarInterface(CP, CarParamsSP())
+    assert off.radar_tracks_available
+    assert CP.radarUnavailable
     RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
     packer = CANPacker(RADAR_180_1B9.dbc_name)
 
@@ -155,29 +159,6 @@ class TestHyundaiFingerprint(unittest.TestCase):
     old_id = result.points[0].trackId
     assert cycle(2).points[0].trackId != old_id
     assert not cycle(0).points
-
-  def test_alt_camera_prefers_radar_and_falls_back_when_empty(self):
-    fp = gen_empty_fingerprint()
-    add_radar_range(fp, RADAR_180_1B9, 2)
-    add_radar_range(fp, RADAR_210_21F, 0)
-    CP = CarInterface.get_params(CAR.HYUNDAI_IONIQ_5, fp, [], False, False, False)
-    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
-    camera = get_radar_parser(RI, RADAR_180_1B9, 2)
-    radar = get_radar_parser(RI, RADAR_210_21F, 0)
-    camera.parser.vl["RADAR_TRACK_180"].update({"1_OBJECT_ID": 1, "1_LONG_DIST": 20})
-    mark_track_updated(camera.parser, RADAR_180_1B9, 0x180, "1_")
-    radar.parser.vl["RADAR_TRACK_210"].update({"1_STATE": 3, "1_LONG_DIST": 21})
-    mark_track_updated(radar.parser, RADAR_210_21F, 0x210, "1_")
-    camera.cycle_timestamps.append(1000000000)
-    radar.cycle_timestamps.append(1000000000)
-    result = RI._update(set())
-    assert len(result.points) == 1
-    assert result.points[0].sourceAddress == 0x210
-    assert all(source.startAddress != 0x180 for source in result.trackSources)
-    radar.parser.vl["RADAR_TRACK_210"]["1_STATE"] = 0
-    result = RI._update(set())
-    assert len(result.points) == 1
-    assert result.points[0].sourceAddress == 0x180
 
   def test_radar_602_track_validity(self):
     for distance, valid in ((0, False), (0.25, True), (255.5, True), (255.75, False)):
@@ -527,7 +508,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
           CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fingerprint, [], False, False, False)
           radar_tracks = get_detected_radar_tracks(CP)
 
-          assert not CP.radarUnavailable
+          assert CP.radarUnavailable == (radar_spec.source_kind != "radar")
           assert len(radar_tracks) == 1
           assert radar_tracks[0].spec == radar_spec
           assert radar_tracks[0].bus == bus
@@ -773,6 +754,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
     bus2_parser.cycle_timestamps.extend(range(0, 500_000_000, 50_000_000))
 
     RI.active_radar_buses[RADAR_3A5_3C4.name] = 2
+    RI.can_time_nanos = 950_000_000
     RI._update(set())
 
     assert RI.active_radar_buses[RADAR_3A5_3C4.name] == 0
@@ -1143,3 +1125,143 @@ class TestHyundaiFingerprint(unittest.TestCase):
         platforms_with_shared_codes.add(platform)
 
     assert platforms_with_shared_codes == excluded_platforms
+
+
+class TestHyundaiSourceCoexistence(unittest.TestCase):
+  def make_interface(self, camera_spec=RADAR_180_1B9, radar_spec=RADAR_210_21F):
+    fingerprint = gen_empty_fingerprint()
+    add_radar_range(fingerprint, camera_spec, 2)
+    add_radar_range(fingerprint, radar_spec, 0)
+    cp = CarInterface.get_params(CAR.HYUNDAI_IONIQ_5, fingerprint, [], False, False, False)
+    ri = RadarInterface(cp, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    packers = {spec.name: CANPacker(spec.dbc_name) for spec in (camera_spec, radar_spec)}
+
+    def messages(spec, bus, valid):
+      prefix = spec.track_prefixes[0]
+      values = {f"{prefix}OBJECT_ID": 1} if spec.source_kind == "camera" else {f"{prefix}STATE": 3}
+      values.update({f"{prefix}LONG_DIST": 20, f"{prefix}LAT_DIST": 1, f"{prefix}REL_SPEED": -2})
+      return [packers[spec.name].make_can_msg(f"RADAR_TRACK_{addr:x}", bus,
+              values if valid and addr == spec.start_addr else {}) for addr in spec.address_range]
+
+    def cycle(ms, radar=None, camera=True):
+      frames = messages(camera_spec, 2, True) if camera else []
+      if radar is not None:
+        frames += messages(radar_spec, 0, radar)
+      return ri.update([(int(ms * 1e6) + 1, frames)])
+
+    return ri, cycle, messages
+
+  def test_camera_detection_preserves_physical_radar_unavailable(self):
+    for camera, radar in ((RADAR_180_1B9, RADAR_210_21F), (RADAR_235_248, RADAR_3A5_3C4)):
+      for candidate in (CAR.GENESIS_GV70_1ST_GEN, CAR.KIA_SORENTO_4TH_GEN, CAR.KIA_SORENTO_HEV_4TH_GEN,
+                        CAR.HYUNDAI_PALISADE, CAR.HYUNDAI_IONIQ_5):
+        with self.subTest(camera=camera.name, candidate=candidate):
+          fp = gen_empty_fingerprint()
+          add_radar_range(fp, camera, 2)
+          cp = CarInterface.get_params(candidate, fp, [], False, False, False)
+          assert cp.radarUnavailable
+          ri = RadarInterface(cp, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+          assert ri.radar_tracks_available
+          add_radar_range(fp, radar, 0)
+          cp = CarInterface.get_params(candidate, fp, [], False, False, False)
+          assert not cp.radarUnavailable
+
+  def test_camera_radar_hysteresis_actual_can(self):
+    for camera, radar in ((RADAR_180_1B9, RADAR_210_21F), (RADAR_235_248, RADAR_3A5_3C4)):
+      with self.subTest(camera=camera.name):
+        ri, cycle, _ = self.make_interface(camera, radar)
+        first = cycle(0)  # Camera starts first; the fingerprinted radar has not transmitted.
+        assert len(first.points) == 1
+        assert first.radarTracksAvailable
+        assert not first.errors.canError
+        camera_id = first.points[0].trackId
+        assert first.trackSources[0].sourceKind == 1
+        for ms in (50, 100, 150):
+          result = cycle(ms, radar=True)
+          assert result.points[0].trackId == camera_id
+        # A single empty radar cycle resets acquisition; it must not recreate the camera track.
+        assert cycle(200, radar=False).points[0].trackId == camera_id
+        for ms in (250, 300, 350, 400, 450, 500):
+          assert cycle(ms, radar=True).points[0].trackId == camera_id
+        result = cycle(550, radar=True)
+        assert result.points[0].sourceAddress == radar.start_addr
+        assert result.trackSources[0].sourceKind == 0
+        assert not result.errors.canError
+        radar_id = result.points[0].trackId
+        assert cycle(600, radar=True).points[0].trackId == radar_id
+        # One empty radar cycle while radar is selected holds the selection, not stale objects.
+        result = cycle(650, radar=False)
+        assert not result.points
+        assert all(source.sourceKind == 0 for source in result.trackSources)
+        assert cycle(700, radar=True).points[0].sourceAddress == radar.start_addr
+        # Radar silence: its cached points expire after three radar periods (150 ms).
+        for ms in (750, 800, 850):
+          assert cycle(ms).points[0].sourceAddress == radar.start_addr
+        assert not cycle(900).points
+        for ms in (950, 1000, 1050, 1100, 1150):
+          assert not cycle(ms).points
+        result = cycle(1200)
+        assert result.points[0].trackId == camera_id
+        assert result.trackSources[0].sourceKind == 1
+        assert not result.errors.canError
+        # Recovery requires another sustained run, then publishes radar only.
+        for ms in (1250, 1300, 1350, 1400, 1450, 1500):
+          assert cycle(ms, radar=True).points[0].trackId == camera_id
+        result = cycle(1550, radar=True)
+        assert len(result.points) == 1
+        assert result.points[0].sourceAddress == radar.start_addr
+
+  def test_radar_first_startup_and_can_clock_expiry(self):
+    ri, cycle, messages = self.make_interface()
+    result = cycle(0, radar=True, camera=False)
+    assert result.points[0].sourceAddress == 0x210
+    assert not result.errors.canError
+    # Partial frames and an end marker do not constitute another complete cycle.
+    frames = messages(RADAR_210_21F, 0, True)
+    ri.update([(100000001, [frames[0], frames[-1]])])
+    result = ri.update([(200000001, [(0x100, bytes(8), 0)])])
+    assert result is not None
+    assert not result.points
+    assert result.errors.canError
+
+  def test_sustained_empty_radar_falls_back_without_rebuilding_camera_track(self):
+    _, cycle, _ = self.make_interface()
+    camera_id = cycle(0).points[0].trackId
+    for ms in range(50, 401, 50):
+      cycle(ms, radar=True)
+    for ms in range(450, 750, 50):
+      result = cycle(ms, radar=False)
+      assert not result.points
+      assert all(source.sourceKind == 0 for source in result.trackSources)
+    result = cycle(750, radar=False)
+    assert result.points[0].trackId == camera_id
+    assert result.trackSources[0].sourceKind == 1
+    assert not result.errors.canError
+
+  def test_empty_radar_does_not_select_unstarted_camera(self):
+    _, cycle, _ = self.make_interface()
+    for ms in range(0, 1000, 50):
+      result = cycle(ms, radar=False, camera=False)
+      assert not result.errors.canError
+      assert not result.points
+      assert result.trackSources[0].sourceKind == 0
+
+  def test_radar_acquisition_requires_complete_cycles_across_hold(self):
+    _, cycle, _ = self.make_interface()
+    first_id = cycle(0).points[0].trackId
+    for ms in (50, 100, 150):
+      assert cycle(ms, radar=True).points[0].trackId == first_id
+    # Fresh cached radar data alone cannot finish the 300 ms acquisition hold.
+    assert cycle(350).points[0].trackId == first_id
+    # A long gap in CAN time must reset acquisition even if both sources resume together.
+    assert cycle(1000, radar=True).points[0].sourceAddress == RADAR_180_1B9.start_addr
+    for ms in (1050, 1100, 1150, 1200, 1250):
+      assert cycle(ms, radar=True).points[0].sourceAddress == RADAR_180_1B9.start_addr
+    assert cycle(1300, radar=True).points[0].sourceAddress == RADAR_210_21F.start_addr
+
+  def test_source_kind_schema_roundtrip(self):
+    from opendbc.car import structs
+    message = structs.RadarData.new_message()
+    message.trackSources = [{"startAddress": 0x235, "sourceKind": 1}, {"startAddress": 0x3A5, "sourceKind": 0}]
+    with structs.RadarData.from_bytes(message.to_bytes()) as parsed:
+      assert [source.sourceKind for source in parsed.trackSources] == [1, 0]
