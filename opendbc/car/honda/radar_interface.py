@@ -2,7 +2,7 @@
 from opendbc.can import CANParser
 from opendbc.car import Bus, structs
 from opendbc.car.interfaces import RadarInterfaceBase
-from opendbc.car.honda.values import CAR, DBC
+from opendbc.car.honda.values import DBC
 
 
 def _create_nidec_can_parser(car_fingerprint):
@@ -17,7 +17,6 @@ class RadarInterface(RadarInterfaceBase):
     self.radar_fault = False
     self.radar_wrong_config = False
     self.radar_off_can = CP.radarUnavailable
-    self.report_track_source = CP.carFingerprint == CAR.HONDA_CLARITY
 
     # Nidec
     if self.radar_off_can:
@@ -71,10 +70,9 @@ class RadarInterface(RadarInterfaceBase):
     if self.radar_wrong_config:
       ret.errors.wrongConfig = True
 
-    # Clarity captures confirm this Nidec source remains active with openpilot longitudinal.
-    if self.report_track_source:
-      ret.radarTracksAvailable = True
-      ret.trackSources = [{"startAddress": 0x430, "endAddress": 0x445, "bus": 1, "trackCount": len(self.pts)}]
+    # Nidec radar tracks stay active with openpilot longitudinal (validated on Clarity routes).
+    ret.radarTracksAvailable = True
+    ret.trackSources = [{"startAddress": 0x430, "endAddress": 0x445, "bus": 1, "trackCount": len(self.pts)}]
 
     ret.points = list(self.pts.values())
 

@@ -1,5 +1,3 @@
-import pytest
-
 from opendbc.car import Bus, gen_empty_fingerprint, structs
 from opendbc.car.honda.interface import CarInterface
 from opendbc.car.honda.radar_interface import RadarInterface
@@ -61,14 +59,18 @@ def test_clarity_bus_and_scan_boundary():
   assert scan(radar, {0x445: CLARITY_SCAN[0x445]}) is not None
 
 
-@pytest.mark.parametrize('platform', [CAR.HONDA_CIVIC, CAR.ACURA_MDX_4G_MMR])
-def test_source_reporting_is_clarity_only(platform):
-  cp, radar = make_radar(platform)
-  if cp.radarUnavailable:
-    assert radar.rcp is None
-    assert not radar.pts
-  else:
-    result = scan(radar)
-    assert len(result.points) == 8
-    assert not result.trackSources
-    assert not result.radarTracksAvailable
+def test_nidec_reports_track_source():
+  cp, radar = make_radar(CAR.HONDA_CIVIC)
+  assert not cp.radarUnavailable
+  result = scan(radar)
+  assert len(result.points) == 8
+  assert result.radarTracksAvailable
+  assert [(s.startAddress, s.endAddress, s.bus, s.trackCount) for s in result.trackSources] == [(0x430, 0x445, 1, 8)]
+
+
+def test_bosch_without_radar_reports_no_source():
+  cp, radar = make_radar(CAR.ACURA_MDX_4G_MMR)
+  assert cp.radarUnavailable
+  assert radar.rcp is None
+  result = radar.update(None)
+  assert result is None or (not result.points and not result.trackSources and not result.radarTracksAvailable)
