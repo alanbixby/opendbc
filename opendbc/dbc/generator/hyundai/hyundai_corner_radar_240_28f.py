@@ -89,7 +89,7 @@ def _object_message(address: int, channel: str, slot: int) -> str:
   parts.append(' SG_ UNKNOWN_CATEGORY : 25|2@0+ (1,0) [0|3] "" ADAS_DRV\n')
   parts.append(' SG_ UNKNOWN_BITS_26_55 : 26|30@1+ (1,0) [0|1073741823] "" ADAS_DRV\n')
   parts.append(' SG_ RCS : 62|7@0- (1,0) [-64|63] "" ADAS_DRV\n')
-  parts.append(' SG_ LONG_DIST : 63|13@1+ (0.05,0) [0|409.55] "m" ADAS_DRV\n')
+  parts.append(' SG_ LONG_DIST : 63|13@1- (0.05,0) [-204.8|204.75] "m" ADAS_DRV\n')
   parts.append(' SG_ LAT_DIST : 76|11@1- (0.05,0) [-51.2|51.15] "m" ADAS_DRV\n')
   parts.append(' SG_ UNKNOWN_BIT_87 : 87|1@1+ (1,0) [0|1] "" ADAS_DRV\n')
   parts.append(' SG_ REL_SPEED : 88|10@1- (0.2,0) [-102.4|102.2] "m/s" ADAS_DRV\n')
@@ -101,9 +101,14 @@ def _object_message(address: int, channel: str, slot: int) -> str:
     f"{_channel_comment(channel)} LONG_DIST, LAT_DIST, REL_SPEED, and REL_LAT_SPEED are route-validated vehicle-frame",
     "kinematics. UNKNOWN_CATEGORY is stable during continuous same-slot tracks and changes mainly when the slot acquires",
     "a spatially different target; all values 0-3 occur on active objects, so it is not lifecycle or validity. Empty slots",
-    "use the 204.7 m LONG_DIST sentinel. RCS shares the front-radar field position and distribution.",
-    "REL_SPEED is signed 10-bit. Four held-out far targets exercised bit 97 independently of bit 96 and their",
-    "distance derivatives matched the extended negative-speed decode, disproving the former 9-bit boundary.",
+    "use the 204.7 m LONG_DIST sentinel (raw 0xFFE, positive in either signedness). RCS shares the front-radar field",
+    "position and distribution. LONG_DIST is signed 13-bit: across ten HDA2 routes, 401 continuous same-slot tracks",
+    "cross from small positive to small negative values between consecutive ~20 Hz frames, with the signed",
+    "derivative matching REL_SPEED, while the former unsigned decode jumped from ~0 m to ~409 m. Values formerly read",
+    "as ~205-409 m are objects behind the longitudinal origin. REL_SPEED is signed 10-bit. Four held-out targets",
+    "exercised bit 97 independently of bit 96 and their distance derivatives matched the extended negative-speed",
+    "decode, disproving the former 9-bit boundary; those targets were at the former unsigned ~351-357 m, i.e. signed",
+    "~-59 to -53 m, so their distance interpretation is superseded but the speed-bit conclusion stands.",
     "The former acceleration candidate at bits 108-117 failed derivative validation and is preserved raw.",
   )
   parts.append(f'CM_ BO_ {address} "{object_comment}";\n')
