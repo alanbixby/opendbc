@@ -73,8 +73,6 @@ class HyundaiRadarParserConfig:
   end_addr: int
   parser: CANParser
   cycle_timestamps: deque[int] = field(default_factory=lambda: deque(maxlen=100))
-  has_compact_lifecycle: bool = False
-  has_detailed_lifecycle: bool = False
 
   @property
   def address_range(self) -> range:
@@ -250,8 +248,10 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     detected_tracks = get_detected_radar_tracks(CP)
     self.radar_tracks_available = bool(detected_tracks)
     self.radar_tracks = detected_tracks
-    self.mobis_detection_buses = {rt.bus for rt in detected_tracks if rt.has_mobis_detections}
-    self.seen_mobis_detection_addrs: dict[int, set[int]] = {}
+    # Freeze the companion signature from the fingerprint. It completed within
+    # 50 ms on every validated Mobis capture. Late-only companions conservatively
+    # stay unflipped: discovering them live would change existing tracks' axes.
+    self.mobis_detection_buses = frozenset(rt.bus for rt in detected_tracks if rt.has_mobis_detections)
     self.radar_parsers = tuple(HyundaiRadarParserConfig(rt.spec, rt.bus, rt.end_addr, get_radar_can_parser(rt))
                                for rt in self.radar_tracks)
     self.seen_radar_addrs = {(rt.spec.name, rt.bus): set(rt.address_range) for rt in detected_tracks}
@@ -278,11 +278,6 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     for _, can_messages in can_strings:
       for raw_addr, dat, raw_bus in can_messages:
         addr, bus = int(raw_addr), int(raw_bus)
-        if bus in RADAR_TRACK_BUSES and addr in MOBIS_DETECTION_ADDRS and len(dat) == 64:
-          seen = self.seen_mobis_detection_addrs.setdefault(bus, set())
-          seen.add(addr)
-          if len(seen) == len(MOBIS_DETECTION_ADDRS):
-            self.mobis_detection_buses.add(bus)
         spec = RADAR_TRACK_SPEC_BY_ADDR.get(addr)
         if spec is None or bus not in RADAR_TRACK_BUSES or len(dat) != spec.message_size:
           continue
@@ -497,21 +492,7 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
 
   def _update_radar_points_from_parser(self, radar_parser: HyundaiRadarParserConfig) -> int:
     track_count = 0
-    if radar_parser.spec == RADAR_210_21F:
-      # Lifecycle is a source property: detailed evidence in any populated slot
-      # prevents mirroring all slots, even when the Mobis companion is present.
-      for addr in radar_parser.address_range:
-        msg_name = f"RADAR_TRACK_{addr:x}"
-        msg = radar_parser.parser.vl[msg_name]
-        for prefix in radar_parser.spec.track_prefixes:
-          if get_track_ts_nanos(radar_parser.parser, msg_name, radar_parser.spec, prefix) == 0:
-            continue
-          if int(msg[f"{prefix}STATE"]) != 0:
-            radar_parser.has_detailed_lifecycle = True
-          elif is_compact_radar_track(msg, prefix):
-            radar_parser.has_compact_lifecycle = True
-    invert_lateral = radar_parser.spec == RADAR_210_21F and radar_parser.bus in self.mobis_detection_buses and \
-      radar_parser.has_compact_lifecycle and not radar_parser.has_detailed_lifecycle
+    has_mobis_companion = radar_parser.spec == RADAR_210_21F and radar_parser.bus in self.mobis_detection_buses
     for addr in radar_parser.address_range:
       msg_name = f"RADAR_TRACK_{addr:x}"
       msg = radar_parser.parser.vl[msg_name]
@@ -529,7 +510,9 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
           d_rel, y_rel, v_rel = decode_radar_track(radar_parser.spec, msg, track_prefix)
           pt = self.pts[track_key]
           pt.dRel = d_rel
-          pt.yRel = (-y_rel if y_rel else 0.0) if invert_lateral else y_rel
+          if has_mobis_companion and is_compact_radar_track(msg, track_prefix):
+            y_rel = -y_rel if y_rel else 0.0
+          pt.yRel = y_rel
           pt.vRel = v_rel
           has_track_metadata = radar_parser.spec.name in ("RADAR_210_21F", "RADAR_235_248", "RADAR_3A5_3C4")
           if radar_parser.spec.name == "RADAR_500_53F":
