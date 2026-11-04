@@ -193,7 +193,7 @@ def get_checksum_state(dbc_name: str) -> ChecksumState | None:
   elif dbc_name.startswith(("toyota_", "lexus_")):
     return ChecksumState(8, -1, 7, -1, False, SignalType.TOYOTA_CHECKSUM, toyota_checksum)
   elif dbc_name.startswith(("hyundai_canfd_generated", "hyundai_corner_radar_240_28f_generated",
-                            "hyundai_radar_210_21f_generated", "hyundai_radar_3a5_3c4_generated",
+                            "hyundai_radar_180_1b9_generated", "hyundai_radar_210_21f_generated", "hyundai_radar_3a5_3c4_generated",
                             "hyundai_radar_detections_3d0_3d4_generated")):
     return ChecksumState(16, -1, 0, -1, True, SignalType.HKG_CAN_FD_CHECKSUM, hkg_can_fd_checksum)
   elif dbc_name.startswith("vw_meb_2024"):
