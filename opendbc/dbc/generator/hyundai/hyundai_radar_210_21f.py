@@ -12,9 +12,12 @@ RADAR_210_21F_MESSAGE_COMMENT = _comment(
   "the compact Tucson/Sportage/Santa Cruz dialect leaves those fields zero and uses STATE_ALT.",
   "The dialect is independent of the logged raw bus and is not an HDA-level discriminator:",
   "HDA2-like routes carried the sustained stream on A-CAN mapped to bus 0, while non-HDA2 routes mapped A-CAN to bus 1.",
-  "Compact targets populate per-slot NEW_SIGNAL_18/OBJECT_ID extension bytes at bytes 16 and 17;",
+  "ID-bearing compact targets populate per-slot NEW_SIGNAL_18/OBJECT_ID extension bytes at bytes 16 and 17;",
   "detailed platforms usually leave them zero. Byte 18 and bits 26, 30-31, 39, 55, and 117 remained zero.",
-  "REL_LAT_SPEED has opposite sign conventions between the detailed and compact dialects.",
+  "Compact lifecycle fields do not determine lateral-position sign: GV70 Electrified is left-positive,",
+  "while the observed persistent-ID-bearing compact streams are right-positive.",
+  "Runtime preserves the wire lateral sign until a robust source discriminator is established.",
+  "REL_LAT_SPEED is left-positive on the validated streams and must not be negated with LAT_DIST.",
   "The HKG CAN-FD checksum matched every one of 13,210,543 checked frames.",
 )
 
@@ -46,12 +49,15 @@ RADAR_210_21F_SIGNAL_COMMENTS = (
     "The raw unit is not calibrated; compact platforms leave it zero.",
   )),
   ("LONG_DIST", "Longitudinal distance from the ego radar. Empty compact slots may contain the 204.75 m endpoint sentinel."),
-  ("LAT_DIST", "Lateral position relative to the ego axis: left-positive in the detailed dialect, right-positive in the compact dialect."),
+  ("LAT_DIST", _comment(
+    "Lateral position relative to the ego axis. Detailed and GV70 Electrified compact streams are left-positive;",
+    "validated ID-bearing compact streams are right-positive. STATE alone does not identify the convention.",
+  )),
   ("REL_SPEED", "Longitudinal speed relative to ego; negative means the target is moving longitudinally slower than ego."),
   ("NEW_SIGNAL_4", "Unknown category, observed 0-2 on detailed platforms. Compact platforms leave it zero."),
   ("REL_LAT_SPEED", _comment(
     "Target lateral speed relative to the ego axis at 0.01 m/s per bit.",
-    "The detailed dialect uses the decoded sign; compact platforms use the opposite sign.",
+    "Left-positive on the validated detailed and compact streams; independent of the LAT_DIST convention.",
   )),
   ("REL_ACCEL", "Target longitudinal acceleration relative to ego acceleration at 0.05 m/s^2 per bit."),
   ("NEW_SIGNAL_18", _comment(

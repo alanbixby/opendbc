@@ -170,12 +170,9 @@ def decode_radar_track(radar_spec: HyundaiRadarTrackSpec, track_msg, track_prefi
     )
 
   if radar_spec.name == "RADAR_210_21F":
-    # Compact targets use STATE_ALT with detailed STATE zero, and encode
-    # lateral position right-positive. Detailed targets are already left-positive.
-    lateral_sign = -1 if int(track_msg[f"{track_prefix}STATE"]) == 0 else 1
     return (
       track_msg[f"{track_prefix}LONG_DIST"],
-      lateral_sign * track_msg[f"{track_prefix}LAT_DIST"],
+      track_msg[f"{track_prefix}LAT_DIST"],
       track_msg[f"{track_prefix}REL_SPEED"],
     )
 
