@@ -1,5 +1,22 @@
 {
-  "routes": [
+  "shared_base": "e3c4eb8a70b2ce1c437ec12ad87703d10f91a260",
+  "gate": {
+    "cycles": 3,
+    "max_range_m": 120,
+    "adjacent_speed_error_mps": 6,
+    "window_speed_error_mps": 3,
+    "window_seconds": [
+      0.18,
+      0.45
+    ],
+    "observation_dt_seconds": [
+      0.015,
+      0.045
+    ],
+    "lateral_step": "0.5 + 8 * dt",
+    "wheel_freshness_ns": 500000000
+  },
+  "before": [
     {
       "platform": "HYUNDAI_ELANTRA_2021",
       "radarUnavailable": true,
@@ -1599,6 +1616,4667 @@
       "seg": "3"
     }
   ],
+  "after": [
+    {
+      "platform": "HYUNDAI_ELANTRA_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x255@1": 2.47
+      },
+      "pts_per_frame": 2.47,
+      "kin_err": 0.334,
+      "kin_corr": 0.986,
+      "stat_frac": 0.001,
+      "lead_frames": 1414,
+      "lead_match": 0.452,
+      "lead_match_flipY": 0.448,
+      "lead_dx_med": -2.02,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 30,
+      "lat_err": 0.21,
+      "lat_err_flip": 1.26,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 2.47,
+          "kin_err": 0.334,
+          "kin_corr": 0.986,
+          "stat_frac": 0.001,
+          "lead_frames": 1414,
+          "lead_match": 0.452,
+          "lead_match_flipY": 0.448,
+          "lead_dx_med": -2.02,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 30,
+          "lat_err": 0.21,
+          "lat_err_flip": 1.26
+        }
+      },
+      "route": "224d1e774b6acc2e/0000001d--0ae7d5fa70",
+      "seg": "10"
+    },
+    {
+      "platform": "HYUNDAI_ELANTRA_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 1.11
+      },
+      "pts_per_frame": 1.11,
+      "kin_err": 0.407,
+      "kin_corr": 0.924,
+      "stat_frac": 0.0,
+      "lead_frames": 1415,
+      "lead_match": 0.738,
+      "lead_match_flipY": 0.363,
+      "lead_dx_med": -1.68,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 553,
+      "lat_err": 0.24,
+      "lat_err_flip": 5.12,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.11,
+          "kin_err": 0.407,
+          "kin_corr": 0.924,
+          "stat_frac": 0.0,
+          "lead_frames": 1415,
+          "lead_match": 0.738,
+          "lead_match_flipY": 0.363,
+          "lead_dx_med": -1.68,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 553,
+          "lat_err": 0.24,
+          "lat_err_flip": 5.12
+        }
+      },
+      "route": "224d1e774b6acc2e/0000001d--0ae7d5fa70",
+      "seg": "13"
+    },
+    {
+      "platform": "HYUNDAI_CUSTIN_1ST_GEN",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x255@1": 1.97
+      },
+      "pts_per_frame": 1.97,
+      "kin_err": 0.423,
+      "kin_corr": null,
+      "stat_frac": 0.588,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.97,
+          "kin_err": 0.423,
+          "kin_corr": null,
+          "stat_frac": 0.588,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "3e4f79d5bf692518/00000001--f53d01f8e3",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_CUSTIN_1ST_GEN",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 2.04
+      },
+      "pts_per_frame": 2.04,
+      "kin_err": 0.254,
+      "kin_corr": 0.988,
+      "stat_frac": 0.556,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 2.04,
+          "kin_err": 0.254,
+          "kin_corr": 0.988,
+          "stat_frac": 0.556,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "3e4f79d5bf692518/00000001--f53d01f8e3",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_CUSTIN_1ST_GEN",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 1.65
+      },
+      "pts_per_frame": 1.65,
+      "kin_err": 0.359,
+      "kin_corr": 0.969,
+      "stat_frac": 0.098,
+      "lead_frames": 1488,
+      "lead_match": 0.84,
+      "lead_match_flipY": 0.447,
+      "lead_dx_med": 0.58,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 666,
+      "lat_err": 0.31,
+      "lat_err_flip": 4.81,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.65,
+          "kin_err": 0.359,
+          "kin_corr": 0.969,
+          "stat_frac": 0.098,
+          "lead_frames": 1488,
+          "lead_match": 0.84,
+          "lead_match_flipY": 0.447,
+          "lead_dx_med": 0.58,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 666,
+          "lat_err": 0.31,
+          "lat_err_flip": 4.81
+        }
+      },
+      "route": "3e4f79d5bf692518/00000002--b18171f9a9",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_CUSTIN_1ST_GEN",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 2.17
+      },
+      "pts_per_frame": 2.17,
+      "kin_err": 0.384,
+      "kin_corr": 0.972,
+      "stat_frac": 0.146,
+      "lead_frames": 1137,
+      "lead_match": 0.096,
+      "lead_match_flipY": 0.066,
+      "lead_dx_med": -2.0,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 55,
+      "lat_err": 1.26,
+      "lat_err_flip": 2.6,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 2.17,
+          "kin_err": 0.384,
+          "kin_corr": 0.972,
+          "stat_frac": 0.146,
+          "lead_frames": 1137,
+          "lead_match": 0.096,
+          "lead_match_flipY": 0.066,
+          "lead_dx_med": -2.0,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 55,
+          "lat_err": 1.26,
+          "lat_err_flip": 2.6
+        }
+      },
+      "route": "3e4f79d5bf692518/00000002--b18171f9a9",
+      "seg": "4"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_PHEV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.6
+      },
+      "pts_per_frame": 0.6,
+      "kin_err": 0.315,
+      "kin_corr": 0.975,
+      "stat_frac": 0.034,
+      "lead_frames": 47,
+      "lead_match": 0.66,
+      "lead_match_flipY": 0.66,
+      "lead_dx_med": 2.51,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 8,
+      "lat_err": 0.28,
+      "lat_err_flip": 1.14,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.6,
+          "kin_err": 0.315,
+          "kin_corr": 0.975,
+          "stat_frac": 0.034,
+          "lead_frames": 47,
+          "lead_match": 0.66,
+          "lead_match_flipY": 0.66,
+          "lead_dx_med": 2.51,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 8,
+          "lat_err": 0.28,
+          "lat_err_flip": 1.14
+        }
+      },
+      "route": "4709fe68b0cc9c0a/00000125--ed2a02e7a8",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_PHEV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.39
+      },
+      "pts_per_frame": 0.39,
+      "kin_err": 0.259,
+      "kin_corr": 0.665,
+      "stat_frac": 0.047,
+      "lead_frames": 43,
+      "lead_match": 0.0,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.39,
+          "kin_err": 0.259,
+          "kin_corr": 0.665,
+          "stat_frac": 0.047,
+          "lead_frames": 43,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "4709fe68b0cc9c0a/00000125--ed2a02e7a8",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_PHEV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.09
+      },
+      "pts_per_frame": 0.09,
+      "kin_err": 0.169,
+      "kin_corr": null,
+      "stat_frac": 0.459,
+      "lead_frames": 2,
+      "lead_match": 0.0,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.09,
+          "kin_err": 0.169,
+          "kin_corr": null,
+          "stat_frac": 0.459,
+          "lead_frames": 2,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "4709fe68b0cc9c0a/0000012b--f29c054b05",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_PHEV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.04
+      },
+      "pts_per_frame": 0.04,
+      "kin_err": null,
+      "kin_corr": null,
+      "stat_frac": 0.213,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.04,
+          "kin_err": null,
+          "kin_corr": null,
+          "stat_frac": 0.213,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "4709fe68b0cc9c0a/0000012b--f29c054b05",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_HEV_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.76
+      },
+      "pts_per_frame": 0.76,
+      "kin_err": 0.205,
+      "kin_corr": 0.974,
+      "stat_frac": 0.024,
+      "lead_frames": 1032,
+      "lead_match": 0.472,
+      "lead_match_flipY": 0.363,
+      "lead_dx_med": -0.28,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 142,
+      "lat_err": 0.44,
+      "lat_err_flip": 3.35,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.76,
+          "kin_err": 0.205,
+          "kin_corr": 0.974,
+          "stat_frac": 0.024,
+          "lead_frames": 1032,
+          "lead_match": 0.472,
+          "lead_match_flipY": 0.363,
+          "lead_dx_med": -0.28,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 142,
+          "lat_err": 0.44,
+          "lat_err_flip": 3.35
+        }
+      },
+      "route": "4a975fc1d9e71801/00000005--50d176008a",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_HEV_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.5
+      },
+      "pts_per_frame": 0.5,
+      "kin_err": 0.167,
+      "kin_corr": 0.977,
+      "stat_frac": 0.0,
+      "lead_frames": 510,
+      "lead_match": 0.616,
+      "lead_match_flipY": 0.235,
+      "lead_dx_med": 0.91,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 234,
+      "lat_err": 0.38,
+      "lat_err_flip": 2.79,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.5,
+          "kin_err": 0.167,
+          "kin_corr": 0.977,
+          "stat_frac": 0.0,
+          "lead_frames": 510,
+          "lead_match": 0.616,
+          "lead_match_flipY": 0.235,
+          "lead_dx_med": 0.91,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 234,
+          "lat_err": 0.38,
+          "lat_err_flip": 2.79
+        }
+      },
+      "route": "4a975fc1d9e71801/00000005--50d176008a",
+      "seg": "2"
+    },
+    {
+      "platform": "KIA_STINGER_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 1.78
+      },
+      "pts_per_frame": 1.78,
+      "kin_err": 0.331,
+      "kin_corr": 0.93,
+      "stat_frac": 0.147,
+      "lead_frames": 1720,
+      "lead_match": 0.828,
+      "lead_match_flipY": 0.506,
+      "lead_dx_med": -0.68,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 854,
+      "lat_err": 0.26,
+      "lat_err_flip": 2.51,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.78,
+          "kin_err": 0.331,
+          "kin_corr": 0.93,
+          "stat_frac": 0.147,
+          "lead_frames": 1720,
+          "lead_match": 0.828,
+          "lead_match_flipY": 0.506,
+          "lead_dx_med": -0.68,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 854,
+          "lat_err": 0.26,
+          "lat_err_flip": 2.51
+        }
+      },
+      "route": "59fa1d41318b87d3/00000002--b47e891d5f",
+      "seg": "1"
+    },
+    {
+      "platform": "KIA_STINGER_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 3.8
+      },
+      "pts_per_frame": 3.8,
+      "kin_err": 0.429,
+      "kin_corr": 0.979,
+      "stat_frac": 0.011,
+      "lead_frames": 1794,
+      "lead_match": 0.645,
+      "lead_match_flipY": 0.375,
+      "lead_dx_med": -0.94,
+      "turn_n": 7,
+      "turn_corr": null,
+      "lat_n": 571,
+      "lat_err": 0.39,
+      "lat_err_flip": 6.69,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 3.8,
+          "kin_err": 0.429,
+          "kin_corr": 0.979,
+          "stat_frac": 0.011,
+          "lead_frames": 1794,
+          "lead_match": 0.645,
+          "lead_match_flipY": 0.375,
+          "lead_dx_med": -0.94,
+          "turn_n": 7,
+          "turn_corr": null,
+          "lat_n": 571,
+          "lat_err": 0.39,
+          "lat_err_flip": 6.69
+        }
+      },
+      "route": "59fa1d41318b87d3/00000002--b47e891d5f",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_PALISADE",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 2824,
+      "sources": {
+        "0x500-0x51f@1": 19.62,
+        "0x238-0x24f@1": 1.33
+      },
+      "pts_per_frame": 20.94,
+      "kin_err": 0.359,
+      "kin_corr": 0.973,
+      "stat_frac": 0.888,
+      "lead_frames": 644,
+      "lead_match": 0.8,
+      "lead_match_flipY": 0.775,
+      "lead_dx_med": 0.61,
+      "turn_n": 10228,
+      "turn_corr": 0.756,
+      "lat_n": 172,
+      "lat_err": 0.65,
+      "lat_err_flip": 0.97,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 19.62,
+          "kin_err": 0.36,
+          "kin_corr": 0.972,
+          "stat_frac": 0.911,
+          "lead_frames": 644,
+          "lead_match": 0.753,
+          "lead_match_flipY": 0.722,
+          "lead_dx_med": 1.25,
+          "turn_n": 10184,
+          "turn_corr": 0.756,
+          "lat_n": 165,
+          "lat_err": 0.63,
+          "lat_err_flip": 1.18
+        },
+        "0x238-0x24f@1": {
+          "pts_per_frame": 1.32,
+          "kin_err": 0.288,
+          "kin_corr": 0.986,
+          "stat_frac": 0.489,
+          "lead_frames": 644,
+          "lead_match": 0.444,
+          "lead_match_flipY": 0.447,
+          "lead_dx_med": -0.97,
+          "turn_n": 44,
+          "turn_corr": -0.127,
+          "lat_n": 93,
+          "lat_err": 0.71,
+          "lat_err_flip": 1.36
+        }
+      },
+      "route": "662bedbf8453b81e/00000124--7dc358f20c",
+      "seg": "0"
+    },
+    {
+      "platform": "HYUNDAI_PALISADE",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 2612,
+      "sources": {
+        "0x500-0x51f@1": 12.15,
+        "0x238-0x24f@1": 0.53
+      },
+      "pts_per_frame": 12.68,
+      "kin_err": 0.403,
+      "kin_corr": 0.955,
+      "stat_frac": 0.919,
+      "lead_frames": 972,
+      "lead_match": 0.993,
+      "lead_match_flipY": 0.996,
+      "lead_dx_med": 0.59,
+      "turn_n": 12836,
+      "turn_corr": 0.923,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 12.15,
+          "kin_err": 0.416,
+          "kin_corr": 0.935,
+          "stat_frac": 0.919,
+          "lead_frames": 972,
+          "lead_match": 0.105,
+          "lead_match_flipY": 0.108,
+          "lead_dx_med": 0.16,
+          "turn_n": 12808,
+          "turn_corr": 0.923,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        },
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.53,
+          "kin_err": 0.0,
+          "kin_corr": 0.984,
+          "stat_frac": 0.935,
+          "lead_frames": 972,
+          "lead_match": 0.977,
+          "lead_match_flipY": 0.996,
+          "lead_dx_med": 0.59,
+          "turn_n": 28,
+          "turn_corr": 0.767,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "662bedbf8453b81e/00000124--7dc358f20c",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_ELANTRA_HEV_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2032,
+      "sources": {
+        "0x238-0x255@1": 0.22
+      },
+      "pts_per_frame": 0.22,
+      "kin_err": 0.942,
+      "kin_corr": 0.838,
+      "stat_frac": 1.0,
+      "lead_frames": 28,
+      "lead_match": 0.0,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": null,
+      "turn_n": 14,
+      "turn_corr": 0.947,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.22,
+          "kin_err": 0.942,
+          "kin_corr": 0.838,
+          "stat_frac": 1.0,
+          "lead_frames": 28,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 14,
+          "turn_corr": 0.947,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "7bc0de9da607c543/00000042--302b371266",
+      "seg": "0"
+    },
+    {
+      "platform": "HYUNDAI_ELANTRA_HEV_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 2.17
+      },
+      "pts_per_frame": 2.17,
+      "kin_err": 0.333,
+      "kin_corr": 0.891,
+      "stat_frac": 0.963,
+      "lead_frames": 122,
+      "lead_match": 0.303,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": -1.08,
+      "turn_n": 19,
+      "turn_corr": 0.842,
+      "lat_n": 4,
+      "lat_err": 1.45,
+      "lat_err_flip": 2.8,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 2.17,
+          "kin_err": 0.333,
+          "kin_corr": 0.891,
+          "stat_frac": 0.963,
+          "lead_frames": 122,
+          "lead_match": 0.303,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": -1.08,
+          "turn_n": 19,
+          "turn_corr": 0.842,
+          "lat_n": 4,
+          "lat_err": 1.45,
+          "lat_err_flip": 2.8
+        }
+      },
+      "route": "7bc0de9da607c543/00000042--302b371266",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_ELANTRA_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2001,
+      "sources": {
+        "0x238-0x255@1": 1.31
+      },
+      "pts_per_frame": 1.31,
+      "kin_err": 0.379,
+      "kin_corr": 0.993,
+      "stat_frac": 0.176,
+      "lead_frames": 394,
+      "lead_match": 0.0,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.31,
+          "kin_err": 0.379,
+          "kin_corr": 0.993,
+          "stat_frac": 0.176,
+          "lead_frames": 394,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "810a7ca7cb31ed86/00000001--b6f9cdd134",
+      "seg": "18"
+    },
+    {
+      "platform": "HYUNDAI_ELANTRA_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 1.15
+      },
+      "pts_per_frame": 1.15,
+      "kin_err": 0.216,
+      "kin_corr": 0.966,
+      "stat_frac": 0.0,
+      "lead_frames": 2000,
+      "lead_match": 0.976,
+      "lead_match_flipY": 0.863,
+      "lead_dx_med": -0.71,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 787,
+      "lat_err": 0.38,
+      "lat_err_flip": 1.6,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.15,
+          "kin_err": 0.216,
+          "kin_corr": 0.966,
+          "stat_frac": 0.0,
+          "lead_frames": 2000,
+          "lead_match": 0.976,
+          "lead_match_flipY": 0.863,
+          "lead_dx_med": -0.71,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 787,
+          "lat_err": 0.38,
+          "lat_err_flip": 1.6
+        }
+      },
+      "route": "810a7ca7cb31ed86/00000001--b6f9cdd134",
+      "seg": "20"
+    },
+    {
+      "platform": "HYUNDAI_SONATA",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 3192,
+      "sources": {
+        "0x500-0x51f@1": 9.35,
+        "0x238-0x255@1": 1.42
+      },
+      "pts_per_frame": 10.77,
+      "kin_err": 0.884,
+      "kin_corr": 0.992,
+      "stat_frac": 0.521,
+      "lead_frames": 2483,
+      "lead_match": 0.901,
+      "lead_match_flipY": 0.346,
+      "lead_dx_med": -0.35,
+      "turn_n": 4569,
+      "turn_corr": 0.918,
+      "lat_n": 1442,
+      "lat_err": 0.3,
+      "lat_err_flip": 5.1,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 9.35,
+          "kin_err": 1.065,
+          "kin_corr": 0.99,
+          "stat_frac": 0.6,
+          "lead_frames": 2483,
+          "lead_match": 0.855,
+          "lead_match_flipY": 0.303,
+          "lead_dx_med": -0.08,
+          "turn_n": 4569,
+          "turn_corr": 0.918,
+          "lat_n": 1421,
+          "lat_err": 0.3,
+          "lat_err_flip": 5.25
+        },
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.42,
+          "kin_err": 0.378,
+          "kin_corr": 0.96,
+          "stat_frac": 0.0,
+          "lead_frames": 2483,
+          "lead_match": 0.844,
+          "lead_match_flipY": 0.329,
+          "lead_dx_med": -1.18,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 1337,
+          "lat_err": 0.31,
+          "lat_err_flip": 5.04
+        }
+      },
+      "route": "8f52823c702cb300/00000177--177d1aa6ff",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_SONATA",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 3045,
+      "sources": {
+        "0x500-0x51f@1": 13.13,
+        "0x238-0x255@1": 1.16
+      },
+      "pts_per_frame": 14.29,
+      "kin_err": 0.922,
+      "kin_corr": 0.993,
+      "stat_frac": 0.452,
+      "lead_frames": 2017,
+      "lead_match": 0.764,
+      "lead_match_flipY": 0.761,
+      "lead_dx_med": -0.32,
+      "turn_n": 1498,
+      "turn_corr": 0.595,
+      "lat_n": 77,
+      "lat_err": 0.53,
+      "lat_err_flip": 1.06,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 13.13,
+          "kin_err": 1.261,
+          "kin_corr": 0.993,
+          "stat_frac": 0.492,
+          "lead_frames": 2017,
+          "lead_match": 0.751,
+          "lead_match_flipY": 0.749,
+          "lead_dx_med": 0.35,
+          "turn_n": 1498,
+          "turn_corr": 0.595,
+          "lat_n": 69,
+          "lat_err": 0.51,
+          "lat_err_flip": 1.14
+        },
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.16,
+          "kin_err": 0.373,
+          "kin_corr": 0.988,
+          "stat_frac": 0.0,
+          "lead_frames": 2017,
+          "lead_match": 0.688,
+          "lead_match_flipY": 0.69,
+          "lead_dx_med": -1.85,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 21,
+          "lat_err": 0.55,
+          "lat_err_flip": 0.74
+        }
+      },
+      "route": "8f52823c702cb300/00000177--177d1aa6ff",
+      "seg": "2"
+    },
+    {
+      "platform": "KIA_OPTIMA_H_G4_FL",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1991,
+      "sources": {
+        "0x238-0x24f@1": 0.01
+      },
+      "pts_per_frame": 0.01,
+      "kin_err": null,
+      "kin_corr": null,
+      "stat_frac": 1.0,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.01,
+          "kin_err": null,
+          "kin_corr": null,
+          "stat_frac": 1.0,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "9f8ef6e94dfcf047/000000f9--99cc2db166",
+      "seg": "16"
+    },
+    {
+      "platform": "KIA_OPTIMA_H_G4_FL",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1995,
+      "sources": {
+        "0x238-0x24f@1": 0.23
+      },
+      "pts_per_frame": 0.23,
+      "kin_err": 0.247,
+      "kin_corr": 0.817,
+      "stat_frac": 0.075,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.23,
+          "kin_err": 0.247,
+          "kin_corr": 0.817,
+          "stat_frac": 0.075,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "9f8ef6e94dfcf047/000000f9--99cc2db166",
+      "seg": "7"
+    },
+    {
+      "platform": "KIA_NIRO_EV",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 2974,
+      "sources": {
+        "0x500-0x51f@1": 5.95,
+        "0x238-0x24f@1": 1.77
+      },
+      "pts_per_frame": 7.72,
+      "kin_err": 0.214,
+      "kin_corr": 0.995,
+      "stat_frac": 0.22,
+      "lead_frames": 2973,
+      "lead_match": 1.0,
+      "lead_match_flipY": 0.567,
+      "lead_dx_med": -0.8,
+      "turn_n": 896,
+      "turn_corr": 0.727,
+      "lat_n": 1553,
+      "lat_err": 0.58,
+      "lat_err_flip": 2.27,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 5.95,
+          "kin_err": 0.215,
+          "kin_corr": 0.995,
+          "stat_frac": 0.285,
+          "lead_frames": 2973,
+          "lead_match": 1.0,
+          "lead_match_flipY": 0.568,
+          "lead_dx_med": -0.92,
+          "turn_n": 896,
+          "turn_corr": 0.727,
+          "lat_n": 1553,
+          "lat_err": 0.52,
+          "lat_err_flip": 2.34
+        },
+        "0x238-0x24f@1": {
+          "pts_per_frame": 1.77,
+          "kin_err": 0.211,
+          "kin_corr": 0.944,
+          "stat_frac": 0.0,
+          "lead_frames": 2973,
+          "lead_match": 0.949,
+          "lead_match_flipY": 0.552,
+          "lead_dx_med": -1.48,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 1427,
+          "lat_err": 0.6,
+          "lat_err_flip": 2.23
+        }
+      },
+      "route": "b27d9eafeb61976e/00000233--03a9c0858c",
+      "seg": "10"
+    },
+    {
+      "platform": "KIA_NIRO_EV",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 2923,
+      "sources": {
+        "0x500-0x51f@1": 14.21,
+        "0x238-0x24f@1": 2.76
+      },
+      "pts_per_frame": 16.96,
+      "kin_err": 0.296,
+      "kin_corr": 0.994,
+      "stat_frac": 0.227,
+      "lead_frames": 2923,
+      "lead_match": 0.894,
+      "lead_match_flipY": 0.541,
+      "lead_dx_med": 0.89,
+      "turn_n": 1546,
+      "turn_corr": 0.844,
+      "lat_n": 1241,
+      "lat_err": 0.34,
+      "lat_err_flip": 3.87,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 14.21,
+          "kin_err": 0.3,
+          "kin_corr": 0.994,
+          "stat_frac": 0.271,
+          "lead_frames": 2923,
+          "lead_match": 0.85,
+          "lead_match_flipY": 0.514,
+          "lead_dx_med": 1.37,
+          "turn_n": 1546,
+          "turn_corr": 0.844,
+          "lat_n": 1038,
+          "lat_err": 0.51,
+          "lat_err_flip": 4.56
+        },
+        "0x238-0x24f@1": {
+          "pts_per_frame": 2.76,
+          "kin_err": 0.263,
+          "kin_corr": 0.983,
+          "stat_frac": 0.0,
+          "lead_frames": 2923,
+          "lead_match": 0.806,
+          "lead_match_flipY": 0.494,
+          "lead_dx_med": 0.87,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 1164,
+          "lat_err": 0.35,
+          "lat_err_flip": 3.82
+        }
+      },
+      "route": "b27d9eafeb61976e/00000233--03a9c0858c",
+      "seg": "6"
+    },
+    {
+      "platform": "KIA_K5_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x255@1": 1.75
+      },
+      "pts_per_frame": 1.75,
+      "kin_err": 0.322,
+      "kin_corr": 0.968,
+      "stat_frac": 0.429,
+      "lead_frames": 1629,
+      "lead_match": 0.917,
+      "lead_match_flipY": 0.705,
+      "lead_dx_med": -0.91,
+      "turn_n": 9,
+      "turn_corr": null,
+      "lat_n": 472,
+      "lat_err": 0.38,
+      "lat_err_flip": 3.03,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.75,
+          "kin_err": 0.322,
+          "kin_corr": 0.968,
+          "stat_frac": 0.429,
+          "lead_frames": 1629,
+          "lead_match": 0.917,
+          "lead_match_flipY": 0.705,
+          "lead_dx_med": -0.91,
+          "turn_n": 9,
+          "turn_corr": null,
+          "lat_n": 472,
+          "lat_err": 0.38,
+          "lat_err_flip": 3.03
+        }
+      },
+      "route": "c0523d020c46beb3/00000288--0fa094add9",
+      "seg": "1"
+    },
+    {
+      "platform": "KIA_K5_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 1.29
+      },
+      "pts_per_frame": 1.29,
+      "kin_err": 0.395,
+      "kin_corr": 0.861,
+      "stat_frac": 0.019,
+      "lead_frames": 539,
+      "lead_match": 0.51,
+      "lead_match_flipY": 0.447,
+      "lead_dx_med": -2.37,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 43,
+      "lat_err": 0.14,
+      "lat_err_flip": 2.97,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.29,
+          "kin_err": 0.395,
+          "kin_corr": 0.861,
+          "stat_frac": 0.019,
+          "lead_frames": 539,
+          "lead_match": 0.51,
+          "lead_match_flipY": 0.447,
+          "lead_dx_med": -2.37,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 43,
+          "lat_err": 0.14,
+          "lat_err_flip": 2.97
+        }
+      },
+      "route": "c0523d020c46beb3/00000288--0fa094add9",
+      "seg": "3"
+    },
+    {
+      "platform": "KIA_NIRO_PHEV_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1955,
+      "sources": {
+        "0x238-0x24f@1": 2.06
+      },
+      "pts_per_frame": 2.05,
+      "kin_err": 0.25,
+      "kin_corr": 0.978,
+      "stat_frac": 0.354,
+      "lead_frames": 595,
+      "lead_match": 0.608,
+      "lead_match_flipY": 0.605,
+      "lead_dx_med": -0.56,
+      "turn_n": 10,
+      "turn_corr": 0.922,
+      "lat_n": 71,
+      "lat_err": 0.24,
+      "lat_err_flip": 1.14,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 2.05,
+          "kin_err": 0.25,
+          "kin_corr": 0.978,
+          "stat_frac": 0.354,
+          "lead_frames": 595,
+          "lead_match": 0.608,
+          "lead_match_flipY": 0.605,
+          "lead_dx_med": -0.56,
+          "turn_n": 10,
+          "turn_corr": 0.922,
+          "lat_n": 71,
+          "lat_err": 0.24,
+          "lat_err_flip": 1.14
+        }
+      },
+      "route": "ce7eada09318e376/0000000e--0cc3d1c6cc",
+      "seg": "0"
+    },
+    {
+      "platform": "KIA_NIRO_PHEV_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x24f@1": 1.55
+      },
+      "pts_per_frame": 1.55,
+      "kin_err": 0.339,
+      "kin_corr": 0.966,
+      "stat_frac": 0.113,
+      "lead_frames": 719,
+      "lead_match": 0.399,
+      "lead_match_flipY": 0.259,
+      "lead_dx_med": -2.65,
+      "turn_n": 16,
+      "turn_corr": 0.993,
+      "lat_n": 108,
+      "lat_err": 0.55,
+      "lat_err_flip": 3.85,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 1.55,
+          "kin_err": 0.339,
+          "kin_corr": 0.966,
+          "stat_frac": 0.113,
+          "lead_frames": 719,
+          "lead_match": 0.399,
+          "lead_match_flipY": 0.259,
+          "lead_dx_med": -2.65,
+          "turn_n": 16,
+          "turn_corr": 0.993,
+          "lat_n": 108,
+          "lat_err": 0.55,
+          "lat_err_flip": 3.85
+        }
+      },
+      "route": "ce7eada09318e376/0000000e--0cc3d1c6cc",
+      "seg": "3"
+    },
+    {
+      "platform": "HYUNDAI_SONATA_HYBRID",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 3191,
+      "sources": {
+        "0x238-0x255@1": 0.54,
+        "0x500-0x51f@1": 20.69
+      },
+      "pts_per_frame": 21.23,
+      "kin_err": 0.213,
+      "kin_corr": 0.991,
+      "stat_frac": 0.913,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 11526,
+      "turn_corr": 0.765,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.54,
+          "kin_err": 1.0,
+          "kin_corr": 0.6,
+          "stat_frac": 0.537,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        },
+        "0x500-0x51f@1": {
+          "pts_per_frame": 20.69,
+          "kin_err": 0.213,
+          "kin_corr": 0.991,
+          "stat_frac": 0.922,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 11526,
+          "turn_corr": 0.765,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "e3ae9e987a2a4e57/0000002b--30a6963e88",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_SONATA_HYBRID",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 3141,
+      "sources": {
+        "0x500-0x51f@1": 18.45,
+        "0x238-0x255@1": 0.45
+      },
+      "pts_per_frame": 18.9,
+      "kin_err": 0.793,
+      "kin_corr": 0.964,
+      "stat_frac": 0.792,
+      "lead_frames": 84,
+      "lead_match": 0.0,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": null,
+      "turn_n": 17043,
+      "turn_corr": 0.903,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 18.45,
+          "kin_err": 0.794,
+          "kin_corr": 0.964,
+          "stat_frac": 0.81,
+          "lead_frames": 84,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 17043,
+          "turn_corr": 0.903,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        },
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.45,
+          "kin_err": 0.16,
+          "kin_corr": null,
+          "stat_frac": 0.054,
+          "lead_frames": 84,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "e3ae9e987a2a4e57/0000002b--30a6963e88",
+      "seg": "3"
+    },
+    {
+      "platform": "KIA_NIRO_EV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x24f@1": 0.05
+      },
+      "pts_per_frame": 0.05,
+      "kin_err": null,
+      "kin_corr": null,
+      "stat_frac": 0.0,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.05,
+          "kin_err": null,
+          "kin_corr": null,
+          "stat_frac": 0.0,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "f6324c8fb8b6f68d/00000058--5330471811",
+      "seg": "2"
+    },
+    {
+      "platform": "KIA_NIRO_EV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.05
+      },
+      "pts_per_frame": 0.05,
+      "kin_err": null,
+      "kin_corr": null,
+      "stat_frac": 0.0,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.05,
+          "kin_err": null,
+          "kin_corr": null,
+          "stat_frac": 0.0,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "f6324c8fb8b6f68d/00000058--5330471811",
+      "seg": "3"
+    }
+  ],
+  "alternative_k5": [
+    {
+      "platform": "HYUNDAI_ELANTRA_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x255@1": 2.13
+      },
+      "pts_per_frame": 2.13,
+      "kin_err": 0.334,
+      "kin_corr": 0.986,
+      "stat_frac": 0.001,
+      "lead_frames": 1414,
+      "lead_match": 0.428,
+      "lead_match_flipY": 0.424,
+      "lead_dx_med": -2.21,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 20,
+      "lat_err": 0.21,
+      "lat_err_flip": 1.15,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 2.13,
+          "kin_err": 0.334,
+          "kin_corr": 0.986,
+          "stat_frac": 0.001,
+          "lead_frames": 1414,
+          "lead_match": 0.428,
+          "lead_match_flipY": 0.424,
+          "lead_dx_med": -2.21,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 20,
+          "lat_err": 0.21,
+          "lat_err_flip": 1.15
+        }
+      },
+      "route": "224d1e774b6acc2e/0000001d--0ae7d5fa70",
+      "seg": "10"
+    },
+    {
+      "platform": "HYUNDAI_ELANTRA_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 1.0
+      },
+      "pts_per_frame": 1.0,
+      "kin_err": 0.406,
+      "kin_corr": 0.926,
+      "stat_frac": 0.0,
+      "lead_frames": 1415,
+      "lead_match": 0.718,
+      "lead_match_flipY": 0.349,
+      "lead_dx_med": -1.61,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 545,
+      "lat_err": 0.24,
+      "lat_err_flip": 5.14,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.0,
+          "kin_err": 0.406,
+          "kin_corr": 0.926,
+          "stat_frac": 0.0,
+          "lead_frames": 1415,
+          "lead_match": 0.718,
+          "lead_match_flipY": 0.349,
+          "lead_dx_med": -1.61,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 545,
+          "lat_err": 0.24,
+          "lat_err_flip": 5.14
+        }
+      },
+      "route": "224d1e774b6acc2e/0000001d--0ae7d5fa70",
+      "seg": "13"
+    },
+    {
+      "platform": "HYUNDAI_CUSTIN_1ST_GEN",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x255@1": 0.74
+      },
+      "pts_per_frame": 0.74,
+      "kin_err": null,
+      "kin_corr": null,
+      "stat_frac": 0.588,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.74,
+          "kin_err": null,
+          "kin_corr": null,
+          "stat_frac": 0.588,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "3e4f79d5bf692518/00000001--f53d01f8e3",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_CUSTIN_1ST_GEN",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 0.85
+      },
+      "pts_per_frame": 0.85,
+      "kin_err": 0.215,
+      "kin_corr": null,
+      "stat_frac": 0.6,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.85,
+          "kin_err": 0.215,
+          "kin_corr": null,
+          "stat_frac": 0.6,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "3e4f79d5bf692518/00000001--f53d01f8e3",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_CUSTIN_1ST_GEN",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 1.11
+      },
+      "pts_per_frame": 1.11,
+      "kin_err": 0.355,
+      "kin_corr": 0.97,
+      "stat_frac": 0.056,
+      "lead_frames": 1488,
+      "lead_match": 0.825,
+      "lead_match_flipY": 0.44,
+      "lead_dx_med": 0.61,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 649,
+      "lat_err": 0.3,
+      "lat_err_flip": 4.79,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.11,
+          "kin_err": 0.355,
+          "kin_corr": 0.97,
+          "stat_frac": 0.056,
+          "lead_frames": 1488,
+          "lead_match": 0.825,
+          "lead_match_flipY": 0.44,
+          "lead_dx_med": 0.61,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 649,
+          "lat_err": 0.3,
+          "lat_err_flip": 4.79
+        }
+      },
+      "route": "3e4f79d5bf692518/00000002--b18171f9a9",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_CUSTIN_1ST_GEN",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 0.92
+      },
+      "pts_per_frame": 0.92,
+      "kin_err": 0.36,
+      "kin_corr": 0.972,
+      "stat_frac": 0.064,
+      "lead_frames": 1137,
+      "lead_match": 0.053,
+      "lead_match_flipY": 0.026,
+      "lead_dx_med": -2.21,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 30,
+      "lat_err": 1.27,
+      "lat_err_flip": 2.39,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.92,
+          "kin_err": 0.36,
+          "kin_corr": 0.972,
+          "stat_frac": 0.064,
+          "lead_frames": 1137,
+          "lead_match": 0.053,
+          "lead_match_flipY": 0.026,
+          "lead_dx_med": -2.21,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 30,
+          "lat_err": 1.27,
+          "lat_err_flip": 2.39
+        }
+      },
+      "route": "3e4f79d5bf692518/00000002--b18171f9a9",
+      "seg": "4"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_PHEV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.35
+      },
+      "pts_per_frame": 0.35,
+      "kin_err": 0.316,
+      "kin_corr": 0.974,
+      "stat_frac": 0.026,
+      "lead_frames": 47,
+      "lead_match": 0.532,
+      "lead_match_flipY": 0.532,
+      "lead_dx_med": 2.51,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 6,
+      "lat_err": 0.27,
+      "lat_err_flip": 1.24,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.35,
+          "kin_err": 0.316,
+          "kin_corr": 0.974,
+          "stat_frac": 0.026,
+          "lead_frames": 47,
+          "lead_match": 0.532,
+          "lead_match_flipY": 0.532,
+          "lead_dx_med": 2.51,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 6,
+          "lat_err": 0.27,
+          "lat_err_flip": 1.24
+        }
+      },
+      "route": "4709fe68b0cc9c0a/00000125--ed2a02e7a8",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_PHEV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.18
+      },
+      "pts_per_frame": 0.18,
+      "kin_err": 0.259,
+      "kin_corr": 0.662,
+      "stat_frac": 0.043,
+      "lead_frames": 43,
+      "lead_match": 0.0,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.18,
+          "kin_err": 0.259,
+          "kin_corr": 0.662,
+          "stat_frac": 0.043,
+          "lead_frames": 43,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "4709fe68b0cc9c0a/00000125--ed2a02e7a8",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_PHEV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.05
+      },
+      "pts_per_frame": 0.05,
+      "kin_err": 0.13,
+      "kin_corr": null,
+      "stat_frac": 0.481,
+      "lead_frames": 2,
+      "lead_match": 0.0,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.05,
+          "kin_err": 0.13,
+          "kin_corr": null,
+          "stat_frac": 0.481,
+          "lead_frames": 2,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "4709fe68b0cc9c0a/0000012b--f29c054b05",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_PHEV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.01
+      },
+      "pts_per_frame": 0.01,
+      "kin_err": null,
+      "kin_corr": null,
+      "stat_frac": 0.269,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.01,
+          "kin_err": null,
+          "kin_corr": null,
+          "stat_frac": 0.269,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "4709fe68b0cc9c0a/0000012b--f29c054b05",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_HEV_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.52
+      },
+      "pts_per_frame": 0.52,
+      "kin_err": 0.2,
+      "kin_corr": 0.975,
+      "stat_frac": 0.008,
+      "lead_frames": 1032,
+      "lead_match": 0.432,
+      "lead_match_flipY": 0.344,
+      "lead_dx_med": -0.27,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 119,
+      "lat_err": 0.38,
+      "lat_err_flip": 3.12,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.52,
+          "kin_err": 0.2,
+          "kin_corr": 0.975,
+          "stat_frac": 0.008,
+          "lead_frames": 1032,
+          "lead_match": 0.432,
+          "lead_match_flipY": 0.344,
+          "lead_dx_med": -0.27,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 119,
+          "lat_err": 0.38,
+          "lat_err_flip": 3.12
+        }
+      },
+      "route": "4a975fc1d9e71801/00000005--50d176008a",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_IONIQ_HEV_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.34
+      },
+      "pts_per_frame": 0.34,
+      "kin_err": 0.166,
+      "kin_corr": 0.974,
+      "stat_frac": 0.0,
+      "lead_frames": 510,
+      "lead_match": 0.584,
+      "lead_match_flipY": 0.227,
+      "lead_dx_med": 0.91,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 222,
+      "lat_err": 0.36,
+      "lat_err_flip": 2.72,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.34,
+          "kin_err": 0.166,
+          "kin_corr": 0.974,
+          "stat_frac": 0.0,
+          "lead_frames": 510,
+          "lead_match": 0.584,
+          "lead_match_flipY": 0.227,
+          "lead_dx_med": 0.91,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 222,
+          "lat_err": 0.36,
+          "lat_err_flip": 2.72
+        }
+      },
+      "route": "4a975fc1d9e71801/00000005--50d176008a",
+      "seg": "2"
+    },
+    {
+      "platform": "KIA_STINGER_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 1.18
+      },
+      "pts_per_frame": 1.18,
+      "kin_err": 0.331,
+      "kin_corr": 0.926,
+      "stat_frac": 0.091,
+      "lead_frames": 1720,
+      "lead_match": 0.795,
+      "lead_match_flipY": 0.488,
+      "lead_dx_med": -0.68,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 820,
+      "lat_err": 0.26,
+      "lat_err_flip": 2.49,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.18,
+          "kin_err": 0.331,
+          "kin_corr": 0.926,
+          "stat_frac": 0.091,
+          "lead_frames": 1720,
+          "lead_match": 0.795,
+          "lead_match_flipY": 0.488,
+          "lead_dx_med": -0.68,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 820,
+          "lat_err": 0.26,
+          "lat_err_flip": 2.49
+        }
+      },
+      "route": "59fa1d41318b87d3/00000002--b47e891d5f",
+      "seg": "1"
+    },
+    {
+      "platform": "KIA_STINGER_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 2.83
+      },
+      "pts_per_frame": 2.83,
+      "kin_err": 0.428,
+      "kin_corr": 0.979,
+      "stat_frac": 0.005,
+      "lead_frames": 1794,
+      "lead_match": 0.619,
+      "lead_match_flipY": 0.359,
+      "lead_dx_med": -0.94,
+      "turn_n": 5,
+      "turn_corr": null,
+      "lat_n": 549,
+      "lat_err": 0.39,
+      "lat_err_flip": 6.7,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 2.83,
+          "kin_err": 0.428,
+          "kin_corr": 0.979,
+          "stat_frac": 0.005,
+          "lead_frames": 1794,
+          "lead_match": 0.619,
+          "lead_match_flipY": 0.359,
+          "lead_dx_med": -0.94,
+          "turn_n": 5,
+          "turn_corr": null,
+          "lat_n": 549,
+          "lat_err": 0.39,
+          "lat_err_flip": 6.7
+        }
+      },
+      "route": "59fa1d41318b87d3/00000002--b47e891d5f",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_PALISADE",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 2824,
+      "sources": {
+        "0x500-0x51f@1": 19.62,
+        "0x238-0x24f@1": 0.76
+      },
+      "pts_per_frame": 20.38,
+      "kin_err": 0.359,
+      "kin_corr": 0.973,
+      "stat_frac": 0.898,
+      "lead_frames": 644,
+      "lead_match": 0.798,
+      "lead_match_flipY": 0.767,
+      "lead_dx_med": 0.71,
+      "turn_n": 10221,
+      "turn_corr": 0.756,
+      "lat_n": 172,
+      "lat_err": 0.65,
+      "lat_err_flip": 1.05,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 19.62,
+          "kin_err": 0.36,
+          "kin_corr": 0.972,
+          "stat_frac": 0.911,
+          "lead_frames": 644,
+          "lead_match": 0.753,
+          "lead_match_flipY": 0.722,
+          "lead_dx_med": 1.25,
+          "turn_n": 10184,
+          "turn_corr": 0.756,
+          "lat_n": 165,
+          "lat_err": 0.63,
+          "lat_err_flip": 1.18
+        },
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.75,
+          "kin_err": 0.296,
+          "kin_corr": 0.985,
+          "stat_frac": 0.489,
+          "lead_frames": 644,
+          "lead_match": 0.396,
+          "lead_match_flipY": 0.38,
+          "lead_dx_med": -0.71,
+          "turn_n": 37,
+          "turn_corr": -0.387,
+          "lat_n": 75,
+          "lat_err": 0.71,
+          "lat_err_flip": 1.46
+        }
+      },
+      "route": "662bedbf8453b81e/00000124--7dc358f20c",
+      "seg": "0"
+    },
+    {
+      "platform": "HYUNDAI_PALISADE",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 2612,
+      "sources": {
+        "0x500-0x51f@1": 12.15,
+        "0x238-0x24f@1": 0.46
+      },
+      "pts_per_frame": 12.61,
+      "kin_err": 0.403,
+      "kin_corr": 0.955,
+      "stat_frac": 0.919,
+      "lead_frames": 972,
+      "lead_match": 0.99,
+      "lead_match_flipY": 0.993,
+      "lead_dx_med": 0.59,
+      "turn_n": 12832,
+      "turn_corr": 0.923,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 12.15,
+          "kin_err": 0.416,
+          "kin_corr": 0.935,
+          "stat_frac": 0.919,
+          "lead_frames": 972,
+          "lead_match": 0.105,
+          "lead_match_flipY": 0.108,
+          "lead_dx_med": 0.16,
+          "turn_n": 12808,
+          "turn_corr": 0.923,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        },
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.46,
+          "kin_err": 0.0,
+          "kin_corr": 0.984,
+          "stat_frac": 1.0,
+          "lead_frames": 972,
+          "lead_match": 0.974,
+          "lead_match_flipY": 0.993,
+          "lead_dx_med": 0.59,
+          "turn_n": 24,
+          "turn_corr": 0.619,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "662bedbf8453b81e/00000124--7dc358f20c",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_ELANTRA_HEV_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2032,
+      "sources": {
+        "0x238-0x255@1": 0.11
+      },
+      "pts_per_frame": 0.11,
+      "kin_err": 0.95,
+      "kin_corr": 0.9,
+      "stat_frac": 1.0,
+      "lead_frames": 28,
+      "lead_match": 0.0,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": null,
+      "turn_n": 11,
+      "turn_corr": 0.855,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.11,
+          "kin_err": 0.95,
+          "kin_corr": 0.9,
+          "stat_frac": 1.0,
+          "lead_frames": 28,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 11,
+          "turn_corr": 0.855,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "7bc0de9da607c543/00000042--302b371266",
+      "seg": "0"
+    },
+    {
+      "platform": "HYUNDAI_ELANTRA_HEV_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 1.66
+      },
+      "pts_per_frame": 1.66,
+      "kin_err": 0.329,
+      "kin_corr": 0.89,
+      "stat_frac": 0.964,
+      "lead_frames": 122,
+      "lead_match": 0.27,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": -0.97,
+      "turn_n": 11,
+      "turn_corr": 0.844,
+      "lat_n": 2,
+      "lat_err": 1.55,
+      "lat_err_flip": 2.75,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.66,
+          "kin_err": 0.329,
+          "kin_corr": 0.89,
+          "stat_frac": 0.964,
+          "lead_frames": 122,
+          "lead_match": 0.27,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": -0.97,
+          "turn_n": 11,
+          "turn_corr": 0.844,
+          "lat_n": 2,
+          "lat_err": 1.55,
+          "lat_err_flip": 2.75
+        }
+      },
+      "route": "7bc0de9da607c543/00000042--302b371266",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_ELANTRA_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2001,
+      "sources": {
+        "0x238-0x255@1": 0.94
+      },
+      "pts_per_frame": 0.94,
+      "kin_err": 0.382,
+      "kin_corr": 0.993,
+      "stat_frac": 0.131,
+      "lead_frames": 394,
+      "lead_match": 0.0,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.94,
+          "kin_err": 0.382,
+          "kin_corr": 0.993,
+          "stat_frac": 0.131,
+          "lead_frames": 394,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "810a7ca7cb31ed86/00000001--b6f9cdd134",
+      "seg": "18"
+    },
+    {
+      "platform": "HYUNDAI_ELANTRA_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 1.11
+      },
+      "pts_per_frame": 1.11,
+      "kin_err": 0.216,
+      "kin_corr": 0.966,
+      "stat_frac": 0.0,
+      "lead_frames": 2000,
+      "lead_match": 0.975,
+      "lead_match_flipY": 0.862,
+      "lead_dx_med": -0.71,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 787,
+      "lat_err": 0.38,
+      "lat_err_flip": 1.6,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.11,
+          "kin_err": 0.216,
+          "kin_corr": 0.966,
+          "stat_frac": 0.0,
+          "lead_frames": 2000,
+          "lead_match": 0.975,
+          "lead_match_flipY": 0.862,
+          "lead_dx_med": -0.71,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 787,
+          "lat_err": 0.38,
+          "lat_err_flip": 1.6
+        }
+      },
+      "route": "810a7ca7cb31ed86/00000001--b6f9cdd134",
+      "seg": "20"
+    },
+    {
+      "platform": "HYUNDAI_SONATA",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 3192,
+      "sources": {
+        "0x500-0x51f@1": 9.35,
+        "0x238-0x255@1": 1.28
+      },
+      "pts_per_frame": 10.63,
+      "kin_err": 0.885,
+      "kin_corr": 0.992,
+      "stat_frac": 0.528,
+      "lead_frames": 2483,
+      "lead_match": 0.901,
+      "lead_match_flipY": 0.346,
+      "lead_dx_med": -0.34,
+      "turn_n": 4569,
+      "turn_corr": 0.918,
+      "lat_n": 1442,
+      "lat_err": 0.29,
+      "lat_err_flip": 5.11,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 9.35,
+          "kin_err": 1.065,
+          "kin_corr": 0.99,
+          "stat_frac": 0.6,
+          "lead_frames": 2483,
+          "lead_match": 0.855,
+          "lead_match_flipY": 0.303,
+          "lead_dx_med": -0.08,
+          "turn_n": 4569,
+          "turn_corr": 0.918,
+          "lat_n": 1421,
+          "lat_err": 0.3,
+          "lat_err_flip": 5.25
+        },
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.28,
+          "kin_err": 0.375,
+          "kin_corr": 0.96,
+          "stat_frac": 0.0,
+          "lead_frames": 2483,
+          "lead_match": 0.825,
+          "lead_match_flipY": 0.326,
+          "lead_dx_med": -1.2,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 1294,
+          "lat_err": 0.31,
+          "lat_err_flip": 5.02
+        }
+      },
+      "route": "8f52823c702cb300/00000177--177d1aa6ff",
+      "seg": "1"
+    },
+    {
+      "platform": "HYUNDAI_SONATA",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 3045,
+      "sources": {
+        "0x500-0x51f@1": 13.13,
+        "0x238-0x255@1": 1.0
+      },
+      "pts_per_frame": 14.13,
+      "kin_err": 0.924,
+      "kin_corr": 0.993,
+      "stat_frac": 0.458,
+      "lead_frames": 2017,
+      "lead_match": 0.764,
+      "lead_match_flipY": 0.761,
+      "lead_dx_med": -0.32,
+      "turn_n": 1498,
+      "turn_corr": 0.595,
+      "lat_n": 77,
+      "lat_err": 0.53,
+      "lat_err_flip": 1.06,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 13.13,
+          "kin_err": 1.261,
+          "kin_corr": 0.993,
+          "stat_frac": 0.492,
+          "lead_frames": 2017,
+          "lead_match": 0.751,
+          "lead_match_flipY": 0.749,
+          "lead_dx_med": 0.35,
+          "turn_n": 1498,
+          "turn_corr": 0.595,
+          "lat_n": 69,
+          "lat_err": 0.51,
+          "lat_err_flip": 1.14
+        },
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.0,
+          "kin_err": 0.369,
+          "kin_corr": 0.988,
+          "stat_frac": 0.0,
+          "lead_frames": 2017,
+          "lead_match": 0.685,
+          "lead_match_flipY": 0.687,
+          "lead_dx_med": -1.85,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 21,
+          "lat_err": 0.55,
+          "lat_err_flip": 0.74
+        }
+      },
+      "route": "8f52823c702cb300/00000177--177d1aa6ff",
+      "seg": "2"
+    },
+    {
+      "platform": "KIA_OPTIMA_H_G4_FL",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1991,
+      "sources": {
+        "0x238-0x24f@1": 0.0
+      },
+      "pts_per_frame": 0.0,
+      "kin_err": null,
+      "kin_corr": null,
+      "stat_frac": 1.0,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.0,
+          "kin_err": null,
+          "kin_corr": null,
+          "stat_frac": 1.0,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "9f8ef6e94dfcf047/000000f9--99cc2db166",
+      "seg": "16"
+    },
+    {
+      "platform": "KIA_OPTIMA_H_G4_FL",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1995,
+      "sources": {
+        "0x238-0x24f@1": 0.15
+      },
+      "pts_per_frame": 0.15,
+      "kin_err": 0.225,
+      "kin_corr": 0.79,
+      "stat_frac": 0.046,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.15,
+          "kin_err": 0.225,
+          "kin_corr": 0.79,
+          "stat_frac": 0.046,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "9f8ef6e94dfcf047/000000f9--99cc2db166",
+      "seg": "7"
+    },
+    {
+      "platform": "KIA_NIRO_EV",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 2974,
+      "sources": {
+        "0x500-0x51f@1": 5.95,
+        "0x238-0x24f@1": 1.64
+      },
+      "pts_per_frame": 7.59,
+      "kin_err": 0.214,
+      "kin_corr": 0.995,
+      "stat_frac": 0.224,
+      "lead_frames": 2973,
+      "lead_match": 1.0,
+      "lead_match_flipY": 0.566,
+      "lead_dx_med": -0.81,
+      "turn_n": 896,
+      "turn_corr": 0.727,
+      "lat_n": 1553,
+      "lat_err": 0.57,
+      "lat_err_flip": 2.28,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 5.95,
+          "kin_err": 0.215,
+          "kin_corr": 0.995,
+          "stat_frac": 0.285,
+          "lead_frames": 2973,
+          "lead_match": 1.0,
+          "lead_match_flipY": 0.568,
+          "lead_dx_med": -0.92,
+          "turn_n": 896,
+          "turn_corr": 0.727,
+          "lat_n": 1553,
+          "lat_err": 0.52,
+          "lat_err_flip": 2.34
+        },
+        "0x238-0x24f@1": {
+          "pts_per_frame": 1.64,
+          "kin_err": 0.208,
+          "kin_corr": 0.944,
+          "stat_frac": 0.0,
+          "lead_frames": 2973,
+          "lead_match": 0.929,
+          "lead_match_flipY": 0.543,
+          "lead_dx_med": -1.47,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 1375,
+          "lat_err": 0.57,
+          "lat_err_flip": 2.23
+        }
+      },
+      "route": "b27d9eafeb61976e/00000233--03a9c0858c",
+      "seg": "10"
+    },
+    {
+      "platform": "KIA_NIRO_EV",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 2923,
+      "sources": {
+        "0x500-0x51f@1": 14.21,
+        "0x238-0x24f@1": 2.12
+      },
+      "pts_per_frame": 16.32,
+      "kin_err": 0.295,
+      "kin_corr": 0.994,
+      "stat_frac": 0.236,
+      "lead_frames": 2923,
+      "lead_match": 0.893,
+      "lead_match_flipY": 0.535,
+      "lead_dx_med": 0.91,
+      "turn_n": 1546,
+      "turn_corr": 0.844,
+      "lat_n": 1223,
+      "lat_err": 0.35,
+      "lat_err_flip": 3.93,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 14.21,
+          "kin_err": 0.3,
+          "kin_corr": 0.994,
+          "stat_frac": 0.271,
+          "lead_frames": 2923,
+          "lead_match": 0.85,
+          "lead_match_flipY": 0.514,
+          "lead_dx_med": 1.37,
+          "turn_n": 1546,
+          "turn_corr": 0.844,
+          "lat_n": 1038,
+          "lat_err": 0.51,
+          "lat_err_flip": 4.56
+        },
+        "0x238-0x24f@1": {
+          "pts_per_frame": 2.11,
+          "kin_err": 0.26,
+          "kin_corr": 0.984,
+          "stat_frac": 0.0,
+          "lead_frames": 2923,
+          "lead_match": 0.78,
+          "lead_match_flipY": 0.473,
+          "lead_dx_med": 0.89,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 1086,
+          "lat_err": 0.35,
+          "lat_err_flip": 3.93
+        }
+      },
+      "route": "b27d9eafeb61976e/00000233--03a9c0858c",
+      "seg": "6"
+    },
+    {
+      "platform": "KIA_K5_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x255@1": 1.4
+      },
+      "pts_per_frame": 1.4,
+      "kin_err": 0.315,
+      "kin_corr": 0.966,
+      "stat_frac": 0.357,
+      "lead_frames": 1629,
+      "lead_match": 0.899,
+      "lead_match_flipY": 0.688,
+      "lead_dx_med": -0.91,
+      "turn_n": 6,
+      "turn_corr": null,
+      "lat_n": 465,
+      "lat_err": 0.38,
+      "lat_err_flip": 3.07,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.4,
+          "kin_err": 0.315,
+          "kin_corr": 0.966,
+          "stat_frac": 0.357,
+          "lead_frames": 1629,
+          "lead_match": 0.899,
+          "lead_match_flipY": 0.688,
+          "lead_dx_med": -0.91,
+          "turn_n": 6,
+          "turn_corr": null,
+          "lat_n": 465,
+          "lat_err": 0.38,
+          "lat_err_flip": 3.07
+        }
+      },
+      "route": "c0523d020c46beb3/00000288--0fa094add9",
+      "seg": "1"
+    },
+    {
+      "platform": "KIA_K5_2021",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x255@1": 0.96
+      },
+      "pts_per_frame": 0.96,
+      "kin_err": 0.383,
+      "kin_corr": 0.858,
+      "stat_frac": 0.007,
+      "lead_frames": 539,
+      "lead_match": 0.499,
+      "lead_match_flipY": 0.447,
+      "lead_dx_med": -2.37,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 37,
+      "lat_err": 0.13,
+      "lat_err_flip": 2.97,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.96,
+          "kin_err": 0.383,
+          "kin_corr": 0.858,
+          "stat_frac": 0.007,
+          "lead_frames": 539,
+          "lead_match": 0.499,
+          "lead_match_flipY": 0.447,
+          "lead_dx_med": -2.37,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 37,
+          "lat_err": 0.13,
+          "lat_err_flip": 2.97
+        }
+      },
+      "route": "c0523d020c46beb3/00000288--0fa094add9",
+      "seg": "3"
+    },
+    {
+      "platform": "KIA_NIRO_PHEV_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1955,
+      "sources": {
+        "0x238-0x24f@1": 1.04
+      },
+      "pts_per_frame": 1.04,
+      "kin_err": 0.244,
+      "kin_corr": 0.974,
+      "stat_frac": 0.389,
+      "lead_frames": 595,
+      "lead_match": 0.565,
+      "lead_match_flipY": 0.563,
+      "lead_dx_med": -0.52,
+      "turn_n": 5,
+      "turn_corr": null,
+      "lat_n": 58,
+      "lat_err": 0.24,
+      "lat_err_flip": 1.14,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 1.04,
+          "kin_err": 0.244,
+          "kin_corr": 0.974,
+          "stat_frac": 0.389,
+          "lead_frames": 595,
+          "lead_match": 0.565,
+          "lead_match_flipY": 0.563,
+          "lead_dx_med": -0.52,
+          "turn_n": 5,
+          "turn_corr": null,
+          "lat_n": 58,
+          "lat_err": 0.24,
+          "lat_err_flip": 1.14
+        }
+      },
+      "route": "ce7eada09318e376/0000000e--0cc3d1c6cc",
+      "seg": "0"
+    },
+    {
+      "platform": "KIA_NIRO_PHEV_2022",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x24f@1": 0.81
+      },
+      "pts_per_frame": 0.8,
+      "kin_err": 0.348,
+      "kin_corr": 0.961,
+      "stat_frac": 0.103,
+      "lead_frames": 719,
+      "lead_match": 0.342,
+      "lead_match_flipY": 0.209,
+      "lead_dx_med": -2.62,
+      "turn_n": 10,
+      "turn_corr": 0.997,
+      "lat_n": 101,
+      "lat_err": 0.53,
+      "lat_err_flip": 3.84,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.8,
+          "kin_err": 0.348,
+          "kin_corr": 0.961,
+          "stat_frac": 0.103,
+          "lead_frames": 719,
+          "lead_match": 0.342,
+          "lead_match_flipY": 0.209,
+          "lead_dx_med": -2.62,
+          "turn_n": 10,
+          "turn_corr": 0.997,
+          "lat_n": 101,
+          "lat_err": 0.53,
+          "lat_err_flip": 3.84
+        }
+      },
+      "route": "ce7eada09318e376/0000000e--0cc3d1c6cc",
+      "seg": "3"
+    },
+    {
+      "platform": "HYUNDAI_SONATA_HYBRID",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 3191,
+      "sources": {
+        "0x238-0x255@1": 0.31,
+        "0x500-0x51f@1": 20.69
+      },
+      "pts_per_frame": 20.99,
+      "kin_err": 0.213,
+      "kin_corr": 0.991,
+      "stat_frac": 0.918,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 11526,
+      "turn_corr": 0.765,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.31,
+          "kin_err": 1.018,
+          "kin_corr": 0.558,
+          "stat_frac": 0.535,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        },
+        "0x500-0x51f@1": {
+          "pts_per_frame": 20.69,
+          "kin_err": 0.213,
+          "kin_corr": 0.991,
+          "stat_frac": 0.922,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 11526,
+          "turn_corr": 0.765,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "e3ae9e987a2a4e57/0000002b--30a6963e88",
+      "seg": "2"
+    },
+    {
+      "platform": "HYUNDAI_SONATA_HYBRID",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 3141,
+      "sources": {
+        "0x500-0x51f@1": 18.45,
+        "0x238-0x255@1": 0.15
+      },
+      "pts_per_frame": 18.6,
+      "kin_err": 0.793,
+      "kin_corr": 0.964,
+      "stat_frac": 0.803,
+      "lead_frames": 84,
+      "lead_match": 0.0,
+      "lead_match_flipY": 0.0,
+      "lead_dx_med": null,
+      "turn_n": 17043,
+      "turn_corr": 0.903,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 18.45,
+          "kin_err": 0.794,
+          "kin_corr": 0.964,
+          "stat_frac": 0.81,
+          "lead_frames": 84,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 17043,
+          "turn_corr": 0.903,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        },
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.15,
+          "kin_err": 0.119,
+          "kin_corr": null,
+          "stat_frac": 0.034,
+          "lead_frames": 84,
+          "lead_match": 0.0,
+          "lead_match_flipY": 0.0,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "e3ae9e987a2a4e57/0000002b--30a6963e88",
+      "seg": "3"
+    },
+    {
+      "platform": "KIA_NIRO_EV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 2000,
+      "sources": {
+        "0x238-0x24f@1": 0.01
+      },
+      "pts_per_frame": 0.01,
+      "kin_err": null,
+      "kin_corr": null,
+      "stat_frac": 0.0,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.01,
+          "kin_err": null,
+          "kin_corr": null,
+          "stat_frac": 0.0,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "f6324c8fb8b6f68d/00000058--5330471811",
+      "seg": "2"
+    },
+    {
+      "platform": "KIA_NIRO_EV",
+      "radarUnavailable": true,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x24f"
+      ],
+      "frames": 1999,
+      "sources": {
+        "0x238-0x24f@1": 0.01
+      },
+      "pts_per_frame": 0.01,
+      "kin_err": null,
+      "kin_corr": null,
+      "stat_frac": 0.0,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 0,
+      "turn_corr": null,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x238-0x24f@1": {
+          "pts_per_frame": 0.01,
+          "kin_err": null,
+          "kin_corr": null,
+          "stat_frac": 0.0,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 0,
+          "turn_corr": null,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      },
+      "route": "f6324c8fb8b6f68d/00000058--5330471811",
+      "seg": "3"
+    }
+  ],
+  "heldout_segment1": {
+    "before": {
+      "platform": "HYUNDAI_SONATA_HYBRID",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 3103,
+      "sources": {
+        "0x500-0x51f@1": 17.51,
+        "0x238-0x255@1": 1.09
+      },
+      "pts_per_frame": 18.6,
+      "kin_err": 0.287,
+      "kin_corr": 0.924,
+      "stat_frac": 0.966,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 9346,
+      "turn_corr": 0.837,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 17.51,
+          "kin_err": 0.274,
+          "kin_corr": 0.98,
+          "stat_frac": 0.98,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 8763,
+          "turn_corr": 0.83,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        },
+        "0x238-0x255@1": {
+          "pts_per_frame": 1.09,
+          "kin_err": 0.872,
+          "kin_corr": 0.477,
+          "stat_frac": 0.856,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 583,
+          "turn_corr": 0.977,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      }
+    },
+    "after": {
+      "platform": "HYUNDAI_SONATA_HYBRID",
+      "radarUnavailable": false,
+      "detected": [
+        "RADAR_238_255@1:0x238-0x255",
+        "RADAR_500_53F@1:0x500-0x51f"
+      ],
+      "frames": 3103,
+      "sources": {
+        "0x500-0x51f@1": 17.51,
+        "0x238-0x255@1": 0.71
+      },
+      "pts_per_frame": 18.22,
+      "kin_err": 0.274,
+      "kin_corr": 0.98,
+      "stat_frac": 0.97,
+      "lead_frames": 0,
+      "lead_match": null,
+      "lead_match_flipY": null,
+      "lead_dx_med": null,
+      "turn_n": 8843,
+      "turn_corr": 0.831,
+      "lat_n": 0,
+      "lat_err": null,
+      "lat_err_flip": null,
+      "per_source": {
+        "0x500-0x51f@1": {
+          "pts_per_frame": 17.51,
+          "kin_err": 0.274,
+          "kin_corr": 0.98,
+          "stat_frac": 0.98,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 8763,
+          "turn_corr": 0.83,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        },
+        "0x238-0x255@1": {
+          "pts_per_frame": 0.71,
+          "kin_err": 0.278,
+          "kin_corr": 0.968,
+          "stat_frac": 0.851,
+          "lead_frames": 0,
+          "lead_match": null,
+          "lead_match_flipY": null,
+          "lead_dx_med": null,
+          "turn_n": 80,
+          "turn_corr": 0.99,
+          "lat_n": 0,
+          "lat_err": null,
+          "lat_err_flip": null
+        }
+      }
+    }
+  },
+  "turn_diagnostics": {
+    "stinger": [
+      {
+        "tid": 22,
+        "t0": 154126452180,
+        "t1": 154578154471,
+        "d0": 8.25,
+        "d1": 5.900000095367432,
+        "y0": -6.150000095367432,
+        "y1": -5.550000190734863,
+        "v": -6.940755188465118,
+        "ego": 6.56568118929863,
+        "dy": 1.3283083052429512,
+        "pred": 1.0200332277314876,
+        "kin_err": 1.7382137104707809,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154156309627,
+        "t1": 154608398429,
+        "d0": 8.100000381469727,
+        "d1": 5.75,
+        "y0": -6.099999904632568,
+        "y1": -5.550000190734863,
+        "v": -6.961056858301163,
+        "ego": 6.610621482133865,
+        "dy": 1.2165745124952356,
+        "pred": 1.0159684450650106,
+        "kin_err": 1.762962211688512,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154216260669,
+        "t1": 154668283638,
+        "d0": 7.75,
+        "d1": 5.449999809265137,
+        "y0": -6.0,
+        "y1": -5.449999809265137,
+        "v": -6.9903808534145355,
+        "ego": 6.7017263770103455,
+        "dy": 1.2167527503118172,
+        "pred": 1.0026835100850005,
+        "kin_err": 1.90214342197803,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154245957596,
+        "t1": 154698374575,
+        "d0": 7.599999904632568,
+        "d1": 5.25,
+        "y0": -5.949999809265137,
+        "y1": -5.449999809265137,
+        "v": -6.998046875,
+        "ego": 6.747528105974197,
+        "dy": 1.1051751441892723,
+        "pred": 0.993004628587616,
+        "kin_err": 1.8037239081058498,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154275672232,
+        "t1": 154728355200,
+        "d0": 7.400000095367432,
+        "d1": 5.099999904632568,
+        "y0": -5.900000095367432,
+        "y1": -5.400000095367432,
+        "v": -7.004763454198837,
+        "ego": 6.793017536401749,
+        "dy": 1.1045257616142519,
+        "pred": 0.9821687398596081,
+        "kin_err": 1.9239445294301385,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154306341086,
+        "t1": 154758288690,
+        "d0": 7.25,
+        "d1": 4.949999809265137,
+        "y0": -5.849999904632568,
+        "y1": -5.349999904632568,
+        "v": -7.010937511920929,
+        "ego": 6.837827891111374,
+        "dy": 1.1063229356118016,
+        "pred": 0.9743037220206681,
+        "kin_err": 1.921851586077934,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154336106450,
+        "t1": 154788255877,
+        "d0": 7.300000190734863,
+        "d1": 4.699999809265137,
+        "y0": -5.900000095367432,
+        "y1": -5.300000190734863,
+        "v": -7.0281195640563965,
+        "ego": 6.881828308105469,
+        "dy": 1.326994725203021,
+        "pred": 0.9734291012903393,
+        "kin_err": 1.2778073305085993,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154366087127,
+        "t1": 154818388586,
+        "d0": 7.150000095367432,
+        "d1": 4.5,
+        "y0": -5.900000095367432,
+        "y1": -5.300000190734863,
+        "v": -7.069894731044769,
+        "ego": 6.924614518880844,
+        "dy": 1.3265486827283666,
+        "pred": 0.9594946856908287,
+        "kin_err": 1.2109702402276135,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154396219992,
+        "t1": 154848211971,
+        "d0": 7.0,
+        "d1": 4.349999904632568,
+        "y0": -5.849999904632568,
+        "y1": -5.25,
+        "v": -7.1111273765563965,
+        "ego": 6.966635286808014,
+        "dy": 1.327456973816273,
+        "pred": 0.948734759985191,
+        "kin_err": 1.248191265985656,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154426091711,
+        "t1": 154878084211,
+        "d0": 6.849999904632568,
+        "d1": 4.150000095367432,
+        "y0": -5.800000190734863,
+        "y1": -5.199999809265137,
+        "v": -7.153987646102905,
+        "ego": 7.00805801153183,
+        "dy": 1.3274564986581117,
+        "pred": 0.9328940774721675,
+        "kin_err": 1.1804376220092827,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154455892179,
+        "t1": 154908261450,
+        "d0": 6.800000190734863,
+        "d1": 4.0,
+        "y0": -5.800000190734863,
+        "y1": -5.150000095367432,
+        "v": -7.196169704198837,
+        "ego": 7.049497216939926,
+        "dy": 1.436879419175737,
+        "pred": 0.9287152743550712,
+        "kin_err": 1.006535769636418,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154485729523,
+        "t1": 154938243533,
+        "d0": 6.599999904632568,
+        "d1": 3.799999952316284,
+        "y0": -5.75,
+        "y1": -5.099999904632568,
+        "v": -7.238080531358719,
+        "ego": 7.090883523225784,
+        "dy": 1.4364198256920966,
+        "pred": 0.9063318457465531,
+        "kin_err": 1.0504269108304083,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154517487284,
+        "t1": 154968106398,
+        "d0": 6.300000190734863,
+        "d1": 3.450000047683716,
+        "y0": -5.699999809265137,
+        "y1": -5.050000190734863,
+        "v": -7.280126988887787,
+        "ego": 7.132014721632004,
+        "dy": 1.4424590487528086,
+        "pred": 0.8603273050486011,
+        "kin_err": 0.9554948228160489,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154548285513,
+        "t1": 155001219471,
+        "d0": 6.300000190734863,
+        "d1": 3.0999999046325684,
+        "y0": -5.699999809265137,
+        "y1": -5.0,
+        "v": -7.320545822381973,
+        "ego": 7.172967225313187,
+        "dy": 1.54547875446587,
+        "pred": 0.8391043559616749,
+        "kin_err": 0.25549753094365535,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154578154471,
+        "t1": 155030106138,
+        "d0": 5.900000095367432,
+        "d1": 2.9000000953674316,
+        "y0": -5.550000190734863,
+        "y1": -4.949999809265137,
+        "v": -7.35852324962616,
+        "ego": 7.213089615106583,
+        "dy": 1.3275764319057741,
+        "pred": 0.7938083946458458,
+        "kin_err": 0.720645310346427,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154608398429,
+        "t1": 155080899419,
+        "d0": 5.75,
+        "d1": 2.549999952316284,
+        "y0": -5.550000190734863,
+        "y1": -4.900000095367432,
+        "v": -7.416651361128864,
+        "ego": 7.268239385941449,
+        "dy": 1.3756586951647056,
+        "pred": 0.7576120997637521,
+        "kin_err": 0.6441786776669396,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154638386502,
+        "t1": 155111010096,
+        "d0": 5.550000190734863,
+        "d1": 2.200000047683716,
+        "y0": -5.5,
+        "y1": -4.849999904632568,
+        "v": -7.465563718010397,
+        "ego": 7.305288202622357,
+        "dy": 1.3753018334658758,
+        "pred": 0.7129103674583652,
+        "kin_err": 0.3774703905089618,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154668283638,
+        "t1": 155140950044,
+        "d0": 5.449999809265137,
+        "d1": 2.0,
+        "y0": -5.449999809265137,
+        "y1": -4.849999904632568,
+        "v": -7.502328423892751,
+        "ego": 7.341501768897562,
+        "dy": 1.2693940102706778,
+        "pred": 0.6900158435494701,
+        "kin_err": 0.2033121082184417,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154698374575,
+        "t1": 155170912127,
+        "d0": 5.25,
+        "d1": 1.850000023841858,
+        "y0": -5.449999809265137,
+        "y1": -4.800000190734863,
+        "v": -7.550091883715461,
+        "ego": 7.37737122704001,
+        "dy": 1.375551246200796,
+        "pred": 0.661552945677539,
+        "kin_err": 0.3548965775059303,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154728355200,
+        "t1": 155201211138,
+        "d0": 5.099999904632568,
+        "d1": 1.649999976158142,
+        "y0": -5.400000095367432,
+        "y1": -4.800000190734863,
+        "v": -7.598621284260469,
+        "ego": 7.413350189433379,
+        "dy": 1.2688852067087046,
+        "pred": 0.6323967158375186,
+        "kin_err": 0.30253033726589695,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154758288690,
+        "t1": 155240229575,
+        "d0": 4.949999809265137,
+        "d1": 1.4500000476837158,
+        "y0": -5.349999904632568,
+        "y1": -4.75,
+        "v": -7.646257120020249,
+        "ego": 7.449295324437759,
+        "dy": 1.2449657692614486,
+        "pred": 0.6028390594599025,
+        "kin_err": 0.3839561397217608,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154788255877,
+        "t1": 155240229575,
+        "d0": 4.699999809265137,
+        "d1": 1.4500000476837158,
+        "y0": -5.300000190734863,
+        "y1": -4.75,
+        "v": -7.6779133677482605,
+        "ego": 7.467252552509308,
+        "dy": 1.216885392155858,
+        "pred": 0.5806851426272094,
+        "kin_err": 0.48722998072200685,
+        "track_len": 79
+      },
+      {
+        "tid": 22,
+        "t0": 154818388586,
+        "t1": 155270213690,
+        "d0": 4.5,
+        "d1": 1.2999999523162842,
+        "y0": -5.300000190734863,
+        "y1": -4.699999809265137,
+        "v": -7.712364345788956,
+        "ego": 7.502908915281296,
+        "dy": 1.3279483060102977,
+        "pred": 0.550624512352451,
+        "kin_err": 0.6299777777249647,
+        "track_len": 79
+      }
+    ],
+    "optima": [
+      {
+        "tid": 0,
+        "t0": 1006840384389,
+        "t1": 1007320118131,
+        "d0": 26.0,
+        "d1": 16.799999237060547,
+        "y0": -4.5,
+        "y1": -5.300000190734863,
+        "v": -17.87058796602137,
+        "ego": 18.498061909395105,
+        "dy": -1.6675920843084313,
+        "pred": -0.3262039442674955,
+        "kin_err": 1.3067180216392877,
+        "track_len": 37
+      },
+      {
+        "tid": 0,
+        "t0": 1006869798216,
+        "t1": 1007320118131,
+        "d0": 25.5,
+        "d1": 16.799999237060547,
+        "y0": -4.550000190734863,
+        "y1": -5.300000190734863,
+        "v": -17.88124966621399,
+        "ego": 18.502413988113403,
+        "dy": -1.6654826380485526,
+        "pred": -0.3226649102387159,
+        "kin_err": 1.4383506293657717,
+        "track_len": 37
+      },
+      {
+        "tid": 0,
+        "t0": 1006899678746,
+        "t1": 1007350502439,
+        "d0": 25.0,
+        "d1": 16.299999237060547,
+        "y0": -4.550000190734863,
+        "y1": -5.300000190734863,
+        "v": -17.90624964237213,
+        "ego": 18.51273024082184,
+        "dy": -1.6636215257657276,
+        "pred": -0.31846638077553036,
+        "kin_err": 1.3917617488336376,
+        "track_len": 37
+      },
+      {
+        "tid": 0,
+        "t0": 1006930096587,
+        "t1": 1007380163286,
+        "d0": 24.5,
+        "d1": 15.800000190734863,
+        "y0": -4.550000190734863,
+        "y1": -5.349999904632568,
+        "v": -17.924999713897705,
+        "ego": 18.523489713668823,
+        "dy": -1.777513678917411,
+        "pred": -0.3119952231463407,
+        "kin_err": 1.405468033650834,
+        "track_len": 37
+      },
+      {
+        "tid": 1,
+        "t0": 1024846526044,
+        "t1": 1025306216042,
+        "d0": 29.600000381469727,
+        "d1": 20.0,
+        "y0": -5.949999809265137,
+        "y1": -5.949999809265137,
+        "v": -19.52500009536743,
+        "ego": 19.541561126708984,
+        "dy": 0.0,
+        "pred": -0.5478234920734404,
+        "kin_err": 1.3586397994247257,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1024875865001,
+        "t1": 1025336505641,
+        "d0": 29.100000381469727,
+        "d1": 19.399999618530273,
+        "y0": -5.949999809265137,
+        "y1": -5.949999809265137,
+        "v": -19.518750071525574,
+        "ego": 19.53851819038391,
+        "dy": 0.0,
+        "pred": -0.5342479041343429,
+        "kin_err": 1.5388812372088303,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1024906535075,
+        "t1": 1025365753737,
+        "d0": 28.0,
+        "d1": 18.899999618530273,
+        "y0": -5.949999809265137,
+        "y1": -5.949999809265137,
+        "v": -19.518750071525574,
+        "ego": 19.53514528274536,
+        "dy": 0.0,
+        "pred": -0.5191281816477058,
+        "kin_err": 0.29751859194117003,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1024936045968,
+        "t1": 1025396458125,
+        "d0": 27.299999237060547,
+        "d1": 18.0,
+        "y0": -5.900000095367432,
+        "y1": -5.949999809265137,
+        "v": -19.512500047683716,
+        "ego": 19.53138542175293,
+        "dy": -0.10859772735693658,
+        "pred": -0.5075989322541499,
+        "kin_err": 0.686791164908108,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1024966490527,
+        "t1": 1025425931319,
+        "d0": 26.700000762939453,
+        "d1": 17.5,
+        "y0": -5.900000095367432,
+        "y1": -5.949999809265137,
+        "v": -19.512500047683716,
+        "ego": 19.525923371315002,
+        "dy": -0.10882732828326022,
+        "pred": -0.5012596419003303,
+        "kin_err": 0.5118445972285564,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1024996240681,
+        "t1": 1025456218314,
+        "d0": 26.200000762939453,
+        "d1": 17.0,
+        "y0": -5.900000095367432,
+        "y1": -5.949999809265137,
+        "v": -19.512500047683716,
+        "ego": 19.51878333091736,
+        "dy": -0.10870031564709817,
+        "pred": -0.4945286965652564,
+        "kin_err": 0.4884741365098293,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025026510545,
+        "t1": 1025485703068,
+        "d0": 25.700000762939453,
+        "d1": 16.399999618530273,
+        "y0": -5.900000095367432,
+        "y1": -5.949999809265137,
+        "v": -19.506250023841858,
+        "ego": 19.511768102645874,
+        "dy": -0.10888616733357628,
+        "pred": -0.4875998240473209,
+        "kin_err": 0.7466954806936741,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025055703915,
+        "t1": 1025515966631,
+        "d0": 25.100000381469727,
+        "d1": 15.600000381469727,
+        "y0": -6.0,
+        "y1": -5.900000095367432,
+        "v": -19.493749976158142,
+        "ego": 19.50576615333557,
+        "dy": 0.21726701111407937,
+        "pred": -0.47462230379868786,
+        "kin_err": 1.1466357638851576,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025086176696,
+        "t1": 1025546328347,
+        "d0": 24.5,
+        "d1": 15.0,
+        "y0": -6.0,
+        "y1": -5.900000095367432,
+        "v": -19.481249928474426,
+        "ego": 19.498360991477966,
+        "dy": 0.21731945200076738,
+        "pred": -0.46046276478717996,
+        "kin_err": 1.1641177005553338,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025116473480,
+        "t1": 1025575577953,
+        "d0": 24.0,
+        "d1": 14.5,
+        "y0": -6.0,
+        "y1": -5.900000095367432,
+        "v": -19.481249928474426,
+        "ego": 19.49016261100769,
+        "dy": 0.2178151390665461,
+        "pred": -0.4486194635787062,
+        "kin_err": 1.2112080167131367,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025145800879,
+        "t1": 1025606315665,
+        "d0": 23.5,
+        "d1": 14.0,
+        "y0": -6.0,
+        "y1": -5.900000095367432,
+        "v": -19.47499990463257,
+        "ego": 19.48335313796997,
+        "dy": 0.21714808660360443,
+        "pred": -0.43578459436759537,
+        "kin_err": 1.154087996141154,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025176129738,
+        "t1": 1025635716742,
+        "d0": 22.899999618530273,
+        "d1": 13.699999809265137,
+        "y0": -6.050000190734863,
+        "y1": -6.0,
+        "v": -19.456249833106995,
+        "ego": 19.474924445152283,
+        "dy": 0.10879374373010617,
+        "pred": -0.42312566670205676,
+        "kin_err": 0.5617222357140292,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025206263283,
+        "t1": 1025665915635,
+        "d0": 22.299999237060547,
+        "d1": 12.600000381469727,
+        "y0": -6.050000190734863,
+        "y1": -6.0,
+        "v": -19.44374978542328,
+        "ego": 19.46618640422821,
+        "dy": 0.10877827670696501,
+        "pred": -0.4004020582381995,
+        "kin_err": 1.6591529048055769,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025236665405,
+        "t1": 1025696116350,
+        "d0": 21.200000762939453,
+        "d1": 12.0,
+        "y0": -6.050000190734863,
+        "y1": -5.949999809265137,
+        "v": -19.424999833106995,
+        "ego": 19.45822525024414,
+        "dy": 0.2176519224913697,
+        "pred": -0.37890468539495564,
+        "kin_err": 0.598902311526647,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025275619127,
+        "t1": 1025726590953,
+        "d0": 20.5,
+        "d1": 11.899999618530273,
+        "y0": -5.949999809265137,
+        "y1": -6.150000095367432,
+        "v": -19.40624988079071,
+        "ego": 19.451380491256714,
+        "dy": -0.4434873190998298,
+        "pred": -0.3678527675226278,
+        "kin_err": 0.33632159336433176,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025306216042,
+        "t1": 1025785554106,
+        "d0": 20.0,
+        "d1": 10.899999618530273,
+        "y0": -5.949999809265137,
+        "y1": -6.099999904632568,
+        "v": -19.382352828979492,
+        "ego": 19.439397475298712,
+        "dy": -0.3129317419854052,
+        "pred": -0.34840307012091365,
+        "kin_err": 0.39783842273420333,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025336505641,
+        "t1": 1025815846358,
+        "d0": 19.399999618530273,
+        "d1": 10.300000190734863,
+        "y0": -5.949999809265137,
+        "y1": -6.099999904632568,
+        "v": -19.364705815034753,
+        "ego": 19.43140983581543,
+        "dy": -0.312930010006706,
+        "pred": -0.3316533963622529,
+        "kin_err": 0.3802984716556388,
+        "track_len": 33
+      },
+      {
+        "tid": 1,
+        "t0": 1025365753737,
+        "t1": 1025815846358,
+        "d0": 18.899999618530273,
+        "d1": 10.300000190734863,
+        "y0": -5.949999809265137,
+        "y1": -6.099999904632568,
+        "v": -19.356249928474426,
+        "ego": 19.427600502967834,
+        "dy": -0.3332649511875282,
+        "pred": -0.32629101234161395,
+        "kin_err": 0.24907281304375672,
+        "track_len": 33
+      }
+    ],
+    "palisade_after": [
+      {
+        "tid": 457,
+        "t0": 49082514563,
+        "t1": 49532966073,
+        "d0": 43.400001525878906,
+        "d1": 39.79999923706055,
+        "y0": 1.649999976158142,
+        "y1": 1.850000023841858,
+        "v": -7.722727298736572,
+        "ego": 7.4762584512883965,
+        "dy": 0.4439990614832567,
+        "pred": 0.4774048295408239,
+        "kin_err": 0.26925898369005186,
+        "track_len": 32
+      },
+      {
+        "tid": 457,
+        "t0": 49112842323,
+        "t1": 49572557896,
+        "d0": 43.29999923706055,
+        "d1": 39.599998474121094,
+        "y0": 1.7000000476837158,
+        "y1": 1.850000023841858,
+        "v": -7.7000000260093,
+        "ego": 7.473459742285988,
+        "dy": 0.32628865535112533,
+        "pred": 0.4816716423747484,
+        "kin_err": 0.3484564115094111,
+        "track_len": 32
+      },
+      {
+        "tid": 457,
+        "t0": 49131860084,
+        "t1": 49582393885,
+        "d0": 43.29999923706055,
+        "d1": 39.599998474121094,
+        "y0": 1.7000000476837158,
+        "y1": 1.850000023841858,
+        "v": -7.69090910391374,
+        "ego": 7.470543471249667,
+        "dy": 0.3329383407531327,
+        "pred": 0.4867052919291423,
+        "kin_err": 0.5215729667477076,
+        "track_len": 32
+      },
+      {
+        "tid": 457,
+        "t0": 49142905500,
+        "t1": 49602280188,
+        "d0": 42.900001525878906,
+        "d1": 39.400001525878906,
+        "y0": 1.7000000476837158,
+        "y1": 1.850000023841858,
+        "v": -7.681818181818182,
+        "ego": 7.467948891899803,
+        "dy": 0.326530782118631,
+        "pred": 0.48772795695909416,
+        "kin_err": 0.06276538803429776,
+        "track_len": 32
+      },
+      {
+        "tid": 457,
+        "t0": 49182431542,
+        "t1": 49652884927,
+        "d0": 42.70000076293945,
+        "d1": 38.900001525878906,
+        "y0": 1.7000000476837158,
+        "y1": 1.899999976158142,
+        "v": -7.673913022746211,
+        "ego": 7.465008942977242,
+        "dy": 0.42512166954527547,
+        "pred": 0.48860915800286997,
+        "kin_err": 0.4033999655757814,
+        "track_len": 32
+      },
+      {
+        "tid": 457,
+        "t0": 49203166750,
+        "t1": 49672649354,
+        "d0": 42.5,
+        "d1": 38.900001525878906,
+        "y0": 1.75,
+        "y1": 1.899999976158142,
+        "v": -7.665217358133067,
+        "ego": 7.462208499079165,
+        "dy": 0.3195006053049456,
+        "pred": 0.49034499590945696,
+        "kin_err": 0.0027951378551618333,
+        "track_len": 32
+      },
+      {
+        "tid": 457,
+        "t0": 49222924354,
+        "t1": 49682716281,
+        "d0": 42.5,
+        "d1": 38.70000076293945,
+        "y0": 1.75,
+        "y1": 1.899999976158142,
+        "v": -7.660869515460471,
+        "ego": 7.459416762642238,
+        "dy": 0.326234471181009,
+        "pred": 0.4911768485617143,
+        "kin_err": 0.6037367421012174,
+        "track_len": 32
+      },
+      {
+        "tid": 457,
+        "t0": 49233094823,
+        "t1": 49723173052,
+        "d0": 42.29999923706055,
+        "d1": 38.5,
+        "y0": 1.75,
+        "y1": 1.9500000476837158,
+        "v": -7.656521672787874,
+        "ego": 7.456852311673372,
+        "dy": 0.40809820932428287,
+        "pred": 0.4903560924034312,
+        "kin_err": 0.09734089893747999,
+        "track_len": 32
+      },
+      {
+        "tid": 457,
+        "t0": 49262533104,
+        "t1": 49723173052,
+        "d0": 42.0,
+        "d1": 38.5,
+        "y0": 1.75,
+        "y1": 1.9500000476837158,
+        "v": -7.6499999219721015,
+        "ego": 7.454684127460826,
+        "dy": 0.4341786867423748,
+        "pred": 0.4900144470552637,
+        "kin_err": 0.05187471551475831,
+        "track_len": 32
+      },
+      {
+        "tid": 457,
+        "t0": 49282355761,
+        "t1": 49743054563,
+        "d0": 42.0,
+        "d1": 38.29999923706055,
+        "y0": 1.75,
+        "y1": 1.9500000476837158,
+        "v": -7.64782598744268,
+        "ego": 7.452370353367018,
+        "dy": 0.4341232206714438,
+        "pred": 0.49010094390382597,
+        "kin_err": 0.38345333622148914,
+        "track_len": 32
+      },
+      {
+        "tid": 458,
+        "t0": 49082514563,
+        "t1": 49532966073,
+        "d0": 43.79999923706055,
+        "d1": 40.29999923706055,
+        "y0": -0.6499999761581421,
+        "y1": -0.44999998807907104,
+        "v": -7.6636362292549824,
+        "ego": 7.4762584512883965,
+        "dy": 0.44399892916125655,
+        "pred": 0.4825690512950765,
+        "kin_err": 0.10634549419400763,
+        "track_len": 32
+      },
+      {
+        "tid": 458,
+        "t0": 49112842323,
+        "t1": 49572557896,
+        "d0": 43.70000076293945,
+        "d1": 40.099998474121094,
+        "y0": -0.6499999761581421,
+        "y1": -0.44999998807907104,
+        "v": -7.654545307159424,
+        "ego": 7.473459742285988,
+        "dy": 0.4350515836866615,
+        "pred": 0.48690089720078805,
+        "kin_err": 0.1763886447307801,
+        "track_len": 32
+      },
+      {
+        "tid": 458,
+        "t0": 49131860084,
+        "t1": 49582393885,
+        "d0": 43.70000076293945,
+        "d1": 40.099998474121094,
+        "y0": -0.6499999761581421,
+        "y1": -0.44999998807907104,
+        "v": -7.654545307159424,
+        "ego": 7.470543471249667,
+        "dy": 0.44391783177012073,
+        "pred": 0.49198919443195843,
+        "kin_err": 0.33598122121166085,
+        "track_len": 32
+      },
+      {
+        "tid": 458,
+        "t0": 49142905500,
+        "t1": 49602280188,
+        "d0": 43.29999923706055,
+        "d1": 39.900001525878906,
+        "y0": -0.6000000238418579,
+        "y1": -0.44999998807907104,
+        "v": -7.654545307159424,
+        "ego": 7.467948891899803,
+        "dy": 0.3265309118703268,
+        "pred": 0.4930615417545458,
+        "kin_err": 0.2531847185201981,
+        "track_len": 32
+      },
+      {
+        "tid": 458,
+        "t0": 49182431542,
+        "t1": 49652884927,
+        "d0": 43.099998474121094,
+        "d1": 39.5,
+        "y0": -0.6000000238418579,
+        "y1": -0.4000000059604645,
+        "v": -7.656521589859672,
+        "ego": 7.465008942977242,
+        "dy": 0.4251218595895392,
+        "pred": 0.49459699232151927,
+        "kin_err": 0.004332044829416404,
+        "track_len": 32
+      },
+      {
+        "tid": 458,
+        "t0": 49203166750,
+        "t1": 49672649354,
+        "d0": 42.900001525878906,
+        "d1": 39.5,
+        "y0": -0.6000000238418579,
+        "y1": -0.4000000059604645,
+        "v": -7.656521589859672,
+        "ego": 7.462208499079165,
+        "dy": 0.42600091287172254,
+        "pred": 0.49636889009517837,
+        "kin_err": 0.41450346839823027,
+        "track_len": 32
+      },
+      {
+        "tid": 458,
+        "t0": 49222924354,
+        "t1": 49682716281,
+        "d0": 42.900001525878906,
+        "d1": 39.29999923706055,
+        "y0": -0.6000000238418579,
+        "y1": -0.4000000059604645,
+        "v": -7.656521589859672,
+        "ego": 7.459416762642238,
+        "dy": 0.43497940293630566,
+        "pred": 0.4972258244723881,
+        "kin_err": 0.17311194091425897,
+        "track_len": 32
+      },
+      {
+        "tid": 458,
+        "t0": 49233094823,
+        "t1": 49723173052,
+        "d0": 42.599998474121094,
+        "d1": 39.099998474121094,
+        "y0": -0.6000000238418579,
+        "y1": -0.4000000059604645,
+        "v": -7.656521589859672,
+        "ego": 7.456852311673372,
+        "dy": 0.40809814851292536,
+        "pred": 0.4958179657325666,
+        "kin_err": 0.5148046294027315,
+        "track_len": 32
+      },
+      {
+        "tid": 458,
+        "t0": 49262533104,
+        "t1": 49723173052,
+        "d0": 42.400001525878906,
+        "d1": 39.099998474121094,
+        "y0": -0.550000011920929,
+        "y1": -0.4000000059604645,
+        "v": -7.654545307159424,
+        "ego": 7.454684127460826,
+        "dy": 0.3256339503591305,
+        "pred": 0.49610158304352786,
+        "kin_err": 0.4905920588887973,
+        "track_len": 32
+      },
+      {
+        "tid": 458,
+        "t0": 49282355761,
+        "t1": 49743054563,
+        "d0": 42.400001525878906,
+        "d1": 38.900001525878906,
+        "y0": -0.550000011920929,
+        "y1": -0.3499999940395355,
+        "v": -7.656521589859672,
+        "ego": 7.452370353367018,
+        "dy": 0.43412315598205836,
+        "pred": 0.49620434139009095,
+        "kin_err": 0.0593670394121979,
+        "track_len": 32
+      },
+      {
+        "tid": 559,
+        "t0": 50833121750,
+        "t1": 51312629510,
+        "d0": 32.5,
+        "d1": 29.5,
+        "y0": 6.75,
+        "y1": 6.650000095367432,
+        "v": -6.356521689373514,
+        "ego": 7.002200831537661,
+        "dy": -0.20854699959927314,
+        "pred": -0.30222146626370217,
+        "kin_err": 0.10010573481211082,
+        "track_len": 24
+      },
+      {
+        "tid": 1194,
+        "t0": 91402523400,
+        "t1": 91852637515,
+        "d0": 14.0,
+        "d1": 12.0,
+        "y0": 3.1500000953674316,
+        "y1": 3.4000000953674316,
+        "v": -4.523999977111816,
+        "ego": 5.821561450958252,
+        "dy": 0.5554147085567401,
+        "pred": -0.3035837745179211,
+        "kin_err": 0.08068230865789516,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91442376473,
+        "t1": 91893136785,
+        "d0": 13.899999618530273,
+        "d1": 11.800000190734863,
+        "y0": 3.200000047683716,
+        "y1": 3.450000047683716,
+        "v": -4.527999973297119,
+        "ego": 5.818652667999268,
+        "dy": 0.5546184820282049,
+        "pred": -0.3076814168463004,
+        "kin_err": 0.13079400631883775,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91452124911,
+        "t1": 91912679285,
+        "d0": 13.899999618530273,
+        "d1": 11.699999809265137,
+        "y0": 3.200000047683716,
+        "y1": 3.450000047683716,
+        "v": -4.531999969482422,
+        "ego": 5.816119213104248,
+        "dy": 0.5428240705406915,
+        "pred": -0.3126639014548164,
+        "kin_err": 0.24485143713376356,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91463027567,
+        "t1": 91942440692,
+        "d0": 13.800000190734863,
+        "d1": 11.699999809265137,
+        "y0": 3.200000047683716,
+        "y1": 3.450000047683716,
+        "v": -4.535999965667725,
+        "ego": 5.81446834564209,
+        "dy": 0.5214709130043113,
+        "pred": -0.31724600297105393,
+        "kin_err": 0.15564350073004363,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91492584858,
+        "t1": 91952328608,
+        "d0": 13.800000190734863,
+        "d1": 11.600000381469727,
+        "y0": 3.200000047683716,
+        "y1": 3.450000047683716,
+        "v": -4.535999965667725,
+        "ego": 5.812963161468506,
+        "dy": 0.5437811824521812,
+        "pred": -0.32149105530325095,
+        "kin_err": 0.2492740250393517,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91502344442,
+        "t1": 91973038869,
+        "d0": 13.699999809265137,
+        "d1": 11.5,
+        "y0": 3.25,
+        "y1": 3.5,
+        "v": -4.535999965667725,
+        "ego": 5.811390514373779,
+        "dy": 0.5311301465653426,
+        "pred": -0.32331240147376267,
+        "kin_err": 0.13794491888714688,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91522977931,
+        "t1": 91973038869,
+        "d0": 13.5,
+        "d1": 11.5,
+        "y0": 3.25,
+        "y1": 3.5,
+        "v": -4.537499964237213,
+        "ego": 5.810040056705475,
+        "dy": 0.5554803336431743,
+        "pred": -0.32379783199442924,
+        "kin_err": 0.09365729509181886,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91542733556,
+        "t1": 91992943764,
+        "d0": 13.5,
+        "d1": 11.5,
+        "y0": 3.25,
+        "y1": 3.5,
+        "v": -4.541666626930237,
+        "ego": 5.808174709479014,
+        "dy": 0.5552961606770143,
+        "pred": -0.327259557445867,
+        "kin_err": 0.09929734151412273,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91552768713,
+        "t1": 92002853973,
+        "d0": 13.300000190734863,
+        "d1": 11.300000190734863,
+        "y0": 3.299999952316284,
+        "y1": 3.5,
+        "v": -4.549999952316284,
+        "ego": 5.8062460621198015,
+        "dy": 0.4443603589322517,
+        "pred": -0.3248228036157972,
+        "kin_err": 0.10639742243116856,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91592246317,
+        "t1": 92042619233,
+        "d0": 13.199999809265137,
+        "d1": 11.199999809265137,
+        "y0": 3.299999952316284,
+        "y1": 3.5,
+        "v": -4.5583332777023315,
+        "ego": 5.804041902224223,
+        "dy": 0.444076543190079,
+        "pred": -0.32474195797150496,
+        "kin_err": 0.11756890456227342,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91601884077,
+        "t1": 92052349598,
+        "d0": 13.199999809265137,
+        "d1": 11.199999809265137,
+        "y0": 3.299999952316284,
+        "y1": 3.5,
+        "v": -4.566666603088379,
+        "ego": 5.802090148131053,
+        "dy": 0.44398525161200036,
+        "pred": -0.3263184485549226,
+        "kin_err": 0.12681514551145145,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91612947879,
+        "t1": 92092767619,
+        "d0": 13.100000381469727,
+        "d1": 10.899999618530273,
+        "y0": 3.299999952316284,
+        "y1": 3.5,
+        "v": -4.579999923706055,
+        "ego": 5.799629421234131,
+        "dy": 0.4168233005247258,
+        "pred": -0.32294475976968956,
+        "kin_err": 0.005056878957906186,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91642676994,
+        "t1": 92092767619,
+        "d0": 13.100000381469727,
+        "d1": 10.899999618530273,
+        "y0": 3.299999952316284,
+        "y1": 3.5,
+        "v": -4.583333253860474,
+        "ego": 5.7984408140182495,
+        "dy": 0.4443550622360015,
+        "pred": -0.32369140500147914,
+        "kin_err": 0.3045729604479295,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91652586629,
+        "t1": 92102631942,
+        "d0": 13.0,
+        "d1": 10.800000190734863,
+        "y0": 3.3499999046325684,
+        "y1": 3.549999952316284,
+        "v": -4.591666579246521,
+        "ego": 5.796957492828369,
+        "dy": 0.44439980132337437,
+        "pred": -0.3220704245972536,
+        "kin_err": 0.2967296460134383,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91672144129,
+        "t1": 92122226629,
+        "d0": 12.800000190734863,
+        "d1": 10.699999809265137,
+        "y0": 3.3499999046325684,
+        "y1": 3.549999952316284,
+        "v": -4.599999904632568,
+        "ego": 5.795529941717784,
+        "dy": 0.4443630838428862,
+        "pred": -0.3189815428123457,
+        "kin_err": 0.06581221085676248,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91692919546,
+        "t1": 92152360171,
+        "d0": 12.800000190734863,
+        "d1": 10.5,
+        "y0": 3.3499999046325684,
+        "y1": 3.549999952316284,
+        "v": -4.611999893188477,
+        "ego": 5.793891448974609,
+        "dy": 0.43531206602314676,
+        "pred": -0.3173903596738986,
+        "kin_err": 0.39408808767926473,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91702856473,
+        "t1": 92193005066,
+        "d0": 12.600000381469727,
+        "d1": 10.399999618530273,
+        "y0": 3.4000000953674316,
+        "y1": 3.549999952316284,
+        "v": -4.623999900817871,
+        "ego": 5.792667331695557,
+        "dy": 0.30602935332480397,
+        "pred": -0.31404432395839954,
+        "kin_err": 0.13556354833515982,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91742492202,
+        "t1": 92193005066,
+        "d0": 12.5,
+        "d1": 10.399999618530273,
+        "y0": 3.4000000953674316,
+        "y1": 3.549999952316284,
+        "v": -4.629166563351949,
+        "ego": 5.79209045569102,
+        "dy": 0.33295354902197094,
+        "pred": -0.313439464060089,
+        "kin_err": 0.03218841511482928,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91752253504,
+        "t1": 92202801681,
+        "d0": 12.5,
+        "d1": 10.399999618530273,
+        "y0": 3.4000000953674316,
+        "y1": 3.549999952316284,
+        "v": -4.641666571299235,
+        "ego": 5.791441599527995,
+        "dy": 0.332927452836753,
+        "pred": -0.3140544781555227,
+        "kin_err": 0.019323060159702976,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91762173608,
+        "t1": 92212703921,
+        "d0": 12.300000190734863,
+        "d1": 10.100000381469727,
+        "y0": 3.4000000953674316,
+        "y1": 3.549999952316284,
+        "v": -4.654166579246521,
+        "ego": 5.790980497996013,
+        "dy": 0.332940653759856,
+        "pred": -0.3078088429690073,
+        "kin_err": 0.22896724279474245,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91793167827,
+        "t1": 92252235952,
+        "d0": 12.300000190734863,
+        "d1": 10.0,
+        "y0": 3.4000000953674316,
+        "y1": 3.549999952316284,
+        "v": -4.671999931335449,
+        "ego": 5.790527553558349,
+        "dy": 0.32674857778211575,
+        "pred": -0.30654538072111565,
+        "kin_err": 0.33815012152405455,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91802473608,
+        "t1": 92272816681,
+        "d0": 12.199999809265137,
+        "d1": 9.899999618530273,
+        "y0": 3.4000000953674316,
+        "y1": 3.5999999046325684,
+        "v": -4.683999938964844,
+        "ego": 5.790090732574463,
+        "dy": 0.4252211220832346,
+        "pred": -0.3038598866500329,
+        "kin_err": 0.2060480340279751,
+        "track_len": 78
+      },
+      {
+        "tid": 1194,
+        "t0": 91823022879,
+        "t1": 92292486577,
+        "d0": 12.100000381469727,
+        "d1": 9.899999618530273,
+        "y0": 3.4000000953674316,
+        "y1": 3.5999999046325684,
+        "v": -4.691999950408936,
+        "ego": 5.7898703384399415,
+        "dy": 0.42601762418941436,
+        "pred": -0.30238833664453496,
+        "kin_err": 0.005799990088567242,
+        "track_len": 78
+      }
+    ]
+  },
   "comparison": [
     {
       "route": "8f52823c702cb300_00000177--177d1aa6ff.npz",

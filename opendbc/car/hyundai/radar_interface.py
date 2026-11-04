@@ -335,8 +335,8 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     self.radar_off_can = True
     self.rcp: CANParser | None = None
     self._radar_mode: int | None = None
-    # Legacy camera speed is an absolute-speed candidate. Read wheel speed
-    # independently; never reinterpret it as relative speed at startup.
+    # Legacy A camera speed is absolute. Require independent wheel speed
+    # before converting it to relative speed.
     self.camera_ego_parser = CANParser("hyundai_can_generated", [("WHL_SPD11", 0)], 0)
     self.camera_ego_speed: float | None = None
     self.camera_238_confirmations: dict[tuple[int, int, int], Camera238Confirmation] = {}
@@ -610,6 +610,10 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
       self.camera_238_confirmations.pop(key, None)
       return False
     timestamp = get_track_ts_nanos(radar_parser.parser, f"RADAR_TRACK_{addr:x}", RADAR_238_255, "")
+    if radar_parser.cycle_timestamps and radar_parser.cycle_timestamps[-1] - timestamp > 45_000_000:
+      # A live cycle-end message cannot keep a missing object's old payload confirmed.
+      self.camera_238_confirmations.pop(key, None)
+      return False
     distance, lateral, velocity = decode_radar_track(RADAR_238_255, msg, "")
     if radar_parser.camera_dialect == "A":
       velocity -= self.camera_ego_speed

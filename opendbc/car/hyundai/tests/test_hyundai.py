@@ -248,10 +248,12 @@ class TestHyundaiFingerprint(unittest.TestCase):
     RI = self.camera_238_ri(0x255)
     messages = [self.camera_238_wheels(), *self.camera_238_cycle(0x255)]
     assert not RI.update([(1_000_000_000, messages)]).points
-    for cycle in range(1, 6):
-      # Other frames/cycle ends cannot stand in for a new observation of this object.
-      assert not RI.update([(1_000_000_000 + cycle * 30_000_000, [(0x255, bytes(8), 1)])]).points
+    # Another cycle end cannot stand in for a new observation of this object.
+    assert not RI.update([(1_030_000_000, [(0x255, bytes(8), 1)])]).points
     assert next(iter(RI.camera_238_confirmations.values())).consecutive == 1
+    for cycle in range(2, 6):
+      assert not RI.update([(1_000_000_000 + cycle * 30_000_000, [(0x255, bytes(8), 1)])]).points
+    assert not RI.camera_238_confirmations
 
   def test_camera_238_jump_retires_then_reconfirms(self):
     RI = self.camera_238_ri(0x255)
