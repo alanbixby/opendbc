@@ -215,6 +215,96 @@ class TestHyundaiFingerprint(unittest.TestCase):
       assert not result.points
       assert get_radar_parser(RI, RADAR_238_255, 1).camera_dialect is None
 
+  def test_camera_238_partial_echo_does_not_reset_other_bus(self):
+    fp = gen_empty_fingerprint()
+    add_radar_range(fp, RADAR_238_255, 1)
+    add_radar_range(fp, RADAR_238_255, 2, end_addr=0x24F)
+    fp[2][0x250] = 8
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fp, [], False, False, False)
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    track_id = None
+    for cycle in range(12):
+      messages = [self.camera_238_wheels(), *self.camera_238_cycle(0x255)]
+      if cycle == 0:
+        messages += [(addr, data, 2) for addr, data, _ in self.camera_238_cycle(0x255) if addr <= 0x250]
+      if cycle == 8:
+        # Completing the echo's A extension also must not invalidate bus 1.
+        messages += [(addr, bytes(8), 2) for addr in range(0x251, 0x256)]
+      result = RI.update([(1_000_000_000 + cycle * 30_000_000, messages)])
+      assert len(result.points) == int(cycle >= 2)
+      if result.points:
+        assert result.points[0].sourceBus == 1
+        if track_id is None:
+          track_id = result.points[0].trackId
+        assert result.points[0].trackId == track_id
+    assert get_radar_parser(RI, RADAR_238_255, 2).camera_dialect == "A"
+
+  def test_camera_238_captured_withdrawal_preserves_association(self):
+    RI = self.camera_238_ri(0x255)
+    # Custin route 01 segment 1: native ID 46, continuously valid at 0x247.
+    samples = [
+      (866614953593, "10527deb7b06385c"),
+      (866645479556, "10127e0b7b0a375c"),
+      (866675013781, "0fda7e2b7b0e365c"),
+      (866705463548, "0f527e6b7ac23a5c"),
+      (866735323387, "0f127e8b7ac6395c"),
+      (866764957974, "0eda7eab7aca385c"),
+      (866795517008, "0e9a7ebb7ac2375c"),
+    ]
+    wheel = CANPacker("hyundai_can_generated").make_can_msg(
+      "WHL_SPD11", 0, {f"WHL_SPD_{name}": 45.4 for name in ("FL", "FR", "RL", "RR")})
+    published = []
+    identities = []
+    for timestamp, payload in samples:
+      messages = self.camera_238_cycle(0x255, distance=0, object_id=0)
+      messages[0x247 - 0x238] = (0x247, bytes.fromhex(payload), 1)
+      result = RI.update([(timestamp, [wheel, *messages])])
+      published.append(len(result.points))
+      if result.points:
+        identities.append(result.points[0].trackId)
+    assert published == [0, 0, 1, 0, 0, 1, 1]
+    assert len(set(identities)) == 1
+    assert RI.track_id == 1
+    # Invalid/missing native presence ends association even during withdrawal.
+    RI.update([(866825517008, self.camera_238_cycle(0x255, distance=0, object_id=0))])
+    assert not RI.camera_track_associations
+
+  def test_camera_238_identity_retention_guards(self):
+    for failure in ("missing", "jump", "timeout", "lateral", "stale_wheel"):
+      with self.subTest(failure=failure):
+        RI = self.camera_238_ri(0x255)
+
+        def send(cycle, distance=40, lateral=0, object_id=9, wheel=True, interface=RI):
+          messages = self.camera_238_cycle(0x255, distance, object_id=object_id, lateral=lateral)
+          return interface.update([(1_000_000_000 + cycle * 30_000_000,
+                             [*([self.camera_238_wheels()] if wheel else []), *messages])])
+        for cycle in range(3):
+          result = send(cycle)
+        first_id = result.points[0].trackId
+        # Force withdrawal, without a raw jump that trips the shared reuse guard.
+        assert not send(3, lateral=1).points
+        if failure == "missing":
+          assert not send(4, distance=0).points
+          assert not RI.camera_track_associations
+        elif failure == "jump":
+          assert not send(4, distance=90).points
+        elif failure == "timeout":
+          for cycle in range(4, 16):
+            assert not send(cycle, lateral=cycle % 2).points
+        elif failure == "lateral":
+          # Raw steps remain plausible, but endpoint exceeds the tighter reconnect bound.
+          assert not send(4, lateral=2).points
+        elif failure == "stale_wheel":
+          assert not send(21, wheel=False).points
+          assert not RI.camera_track_associations
+        start = 22 if failure == "stale_wheel" else 16 if failure == "timeout" else 5
+        distance = 90 if failure == "jump" else 40
+        lateral = 2 if failure == "lateral" else 0
+        for cycle in range(start, start + 3):
+          result = send(cycle, distance, lateral)
+        assert len(result.points) == 1
+        assert result.points[0].trackId != first_id
+
   def test_camera_238_coexists_with_500_and_expires(self):
     fp = gen_empty_fingerprint()
     add_radar_range(fp, RADAR_238_255, 1)
