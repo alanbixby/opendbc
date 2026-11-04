@@ -301,6 +301,29 @@ class TestHyundaiFingerprint(unittest.TestCase):
     assert parser.vl["CORNER_B_STATUS_278"]["CHANNEL_A_OBJECT_COUNT"] == 19
     assert parser.vl["CORNER_B_DETECTIONS_0"]["DETECTION_0_DISTANCE_CANDIDATE"] == 40
 
+  def test_corner_radar_research_signed_long_dist(self):
+    # Ioniq 5 102161de13e822d1/0000000d--f74a52a624 segment 2, bus 0: a nearby object in slot 0x241 passes the
+    # longitudinal origin between consecutive frames (counter 211 -> 212, ~50 ms, REL_SPEED -35 m/s).
+    # Unsigned decoding read this as 1.2 m -> 409.0 m.
+    dbc_name = "hyundai_corner_radar_240_28f_generated"
+    parser = CANParser(dbc_name, [("CORNER_A_OBJECT_01", 20)], 0)
+    frames = (
+      (402635736042, "392dd313055d22490c4007510bf01f50b630450f95661a60", 1.2),
+      (402685249739, "dd6fd413055d3049fa4f87500bf01f50b630850fa4651a60", -0.6),
+    )
+    for t, data, long_dist in frames:
+      parser.update([(t, [(0x241, bytes.fromhex(data), 0)])])
+      msg = parser.vl["CORNER_A_OBJECT_01"]
+      assert math.isclose(msg["LONG_DIST"], long_dist, abs_tol=1e-6)
+      assert math.isclose(msg["LAT_DIST"], 5.8, abs_tol=1e-6)
+      assert msg["REL_SPEED"] < -34
+
+    # empty-slot sentinel (raw 0xFFE) is unchanged by the signed decode
+    packer = CANPacker(dbc_name)
+    sentinel = packer.make_can_msg("CORNER_A_OBJECT_01", 0, {"LONG_DIST": 204.7})
+    parser.update([(402735249739, [sentinel])])
+    assert math.isclose(parser.vl["CORNER_A_OBJECT_01"]["LONG_DIST"], 204.7, abs_tol=1e-6)
+
   def test_radar_3d0_research_signal_layout(self):
     dbc_name = "hyundai_radar_detections_3d0_3d4_generated"
     packer = CANPacker(dbc_name)
