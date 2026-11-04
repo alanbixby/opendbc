@@ -8,6 +8,14 @@ def generate():
     parts.append(f"\nBO_ {addr} RADAR_TRACK_{addr:x}: 8 CAMERA\n")
     if geometry:
       parts.append(f'CM_ BO_ {addr} "ID-keyed camera: confirmed dialect, 3 cycles, <=120 m, fresh A ego speed; FULL_RADAR feeds radard.";\n')
+      parts.append(
+        f'CM_ BO_ {addr} "Confirmation withholds points immediately. Identity alone may reconnect within 300 ms, ' +
+        'with continuous valid native ID and tighter motion guards.";\n'
+      )
+      parts.append(
+        f'CM_ BO_ {addr} "Custin raw kinematics remain noisy: guarded native-ID audit 6730 windows, corr 0.506, median error 1.765 m/s. ' +
+        'Gated correlation is selected evidence; always report window counts.";\n'
+      )
       parts.append(''' SG_ LONG_DIST_B : 15|13@0+ (0.05,0) [0|409.55] "m" XXX
  SG_ LAT_DIST_B : 45|10@0- (0.05,0) [-25.6|25.55] "m" XXX
  SG_ REL_SPEED_B : 18|11@0+ (0.1,-100) [-100|104.7] "m/s" XXX
