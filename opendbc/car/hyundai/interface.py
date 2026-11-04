@@ -131,7 +131,7 @@ class CarInterface(CarInterfaceBase):
 
     radar_tracks = detect_radar_tracks(fingerprint)
     set_detected_radar_tracks(ret.carFingerprint, radar_tracks)
-    ret.radarUnavailable = len(radar_tracks) == 0
+    ret.radarUnavailable = not any(track.spec.source_kind == "radar" for track in radar_tracks)
     ret.openpilotLongitudinalControl = alpha_long and ret.alphaLongitudinalAvailable
     ret.pcmCruise = not ret.openpilotLongitudinalControl
     ret.longitudinalActuatorDelay = 0.5

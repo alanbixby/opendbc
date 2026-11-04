@@ -10,7 +10,7 @@ from opendbc.car.fw_versions import build_fw_dict
 from opendbc.car.hyundai.interface import CarInterface
 from opendbc.car.hyundai.hyundaicanfd import CanBus
 from opendbc.car.hyundai.radar_interface import HYUNDAI_RADAR_TRACK_SPECS, RADAR_210_21F, RADAR_235_248, RADAR_3A5_3C4, \
-                                                RADAR_500_53F, RADAR_602_617, RadarInterface, get_detected_radar_tracks, \
+                                                RADAR_500_53F, RADAR_602_617, RADAR_238_255, RadarInterface, get_detected_radar_tracks, \
                                                 is_radar_track_valid
 from opendbc.car.hyundai.values import CAMERA_SCC_CAR, CANFD_CAR, CAN_GEARS, CAR, CHECKSUM, DATE_FW_ECUS, \
                                          HYBRID_CAR, EV_CAR, FW_QUERY_CONFIG, LEGACY_SAFETY_MODE_CAR, CANFD_FUZZY_WHITELIST, \
@@ -73,6 +73,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
       "RADAR_235_248": 33,
       "RADAR_3A5_3C4": 20,
       "RADAR_602_617": 10,
+      "RADAR_238_255": 33,
     }
 
   def test_radar_track_message_sizes(self):
@@ -82,7 +83,67 @@ class TestHyundaiFingerprint(unittest.TestCase):
       "RADAR_235_248": 32,
       "RADAR_3A5_3C4": 24,
       "RADAR_602_617": 8,
+      "RADAR_238_255": 8,
     }
+
+  def test_camera_238_captured_layouts(self):
+    # A: Elantra 224d1e774b6acc2e/0000001d--0ae7d5fa70, segment 10.
+    # B: Ioniq 4a975fc1d9e71801/00000005--50d176008a, cached capture.
+    parser = CANParser(RADAR_238_255.dbc_name, [("RADAR_TRACK_238", 33)], 1)
+    parser.update([(1, [(0x238, bytes.fromhex("64ca809b9a51f638"), 1)])])
+    msg = parser.vl["RADAR_TRACK_238"]
+    for signal, expected in {"LONG_DIST": 161.25, "LAT_DIST": -0.45, "OBJECT_SPEED": 23.4,
+                             "COUNTER_A": 0, "OBJECT_ID": 28}.items():
+      assert abs(msg[signal] - expected) < 1e-6
+    parser.update([(2, [(0x238, bytes.fromhex("7438e337fffe5144"), 1)])])
+    msg = parser.vl["RADAR_TRACK_238"]
+    for signal, expected in {"LONG_DIST_B": 91, "LAT_DIST_B": -1.35, "REL_SPEED_B": -17.7,
+                             "COUNTER_B": 0, "OBJECT_ID_B": 29}.items():
+      assert abs(msg[signal] - expected) < 1e-6
+
+  def test_camera_238_variants_and_identity(self):
+    packer = CANPacker(RADAR_238_255.dbc_name)
+    wheel_packer = CANPacker("hyundai_can_generated")
+    for end_addr in (0x24F, 0x255):
+      with self.subTest(end_addr=end_addr):
+        fp = gen_empty_fingerprint()
+        add_radar_range(fp, RADAR_238_255, 1, end_addr=end_addr)
+        CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fp, [], False, False, False)
+        RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+        assert get_radar_parser(RI, RADAR_238_255, 1).end_addr == end_addr
+        assert RADAR_238_255.source_kind == "camera"
+        assert CP.radarUnavailable
+        values = ({"LONG_DIST": 40, "LAT_DIST": 2, "OBJECT_SPEED": 15, "OBJECT_ID": 7} if end_addr == 0x255 else
+                  {"LONG_DIST_B": 40, "LAT_DIST_B": 2, "REL_SPEED_B": 5, "OBJECT_ID_B": 7})
+        messages = [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 1, values if addr == 0x238 else {})
+                    for addr in range(0x238, end_addr + 1)]
+        wheels = wheel_packer.make_can_msg("WHL_SPD11", 0, {f"WHL_SPD_{wheel}": 36 for wheel in ("FL", "FR", "RL", "RR")})
+        result = RI.update([(1_000_000_000, [wheels, *messages])])
+        assert len(result.points) == 1
+        point = result.points[0]
+        assert (point.dRel, point.yRel, point.vRel) == (40, 2, 5)
+        old_id = point.trackId
+        values["OBJECT_ID" if end_addr == 0x255 else "OBJECT_ID_B"] = 8
+        messages[0] = packer.make_can_msg("RADAR_TRACK_238", 1, values)
+        result = RI.update([(1_030_000_000, messages)])
+        assert result.points[0].trackId != old_id
+        # An empty geometry removes the object, regardless of companion bytes.
+        messages[0] = packer.make_can_msg("RADAR_TRACK_238", 1, {})
+        assert not RI.update([(1_060_000_000, messages)]).points
+
+  def test_camera_238_live_upgrade_and_missing_ego(self):
+    CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, gen_empty_fingerprint(), [], False, False, False)
+    RI = RadarInterface(CP, CarParamsSP(flags=HyundaiFlagsSP.RADAR_FULL_RADAR.value))
+    RI._discover_radar_parsers([(1, [(addr, bytes(8), 1) for addr in range(0x238, 0x250)])])
+    assert get_radar_parser(RI, RADAR_238_255, 1).end_addr == 0x24F
+    RI._discover_radar_parsers([(2, [(addr, bytes(8), 1) for addr in range(0x250, 0x256)])])
+    assert get_radar_parser(RI, RADAR_238_255, 1).end_addr == 0x255
+    packer = CANPacker(RADAR_238_255.dbc_name)
+    messages = [packer.make_can_msg(f"RADAR_TRACK_{addr:x}", 1,
+                {"LONG_DIST": 40, "OBJECT_ID": 7, "OBJECT_SPEED": 15} if addr == 0x238 else {})
+                for addr in RADAR_238_255.address_range]
+    # Absolute-speed dialect must not emit a relative-speed point without ego speed.
+    assert not RI.update([(1_000_000_000, messages)]).points
 
   def test_radar_602_track_validity(self):
     for distance, valid in ((0, False), (0.25, True), (255.5, True), (255.75, False)):
@@ -432,7 +493,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
           CP = CarInterface.get_params(CAR.HYUNDAI_SONATA, fingerprint, [], False, False, False)
           radar_tracks = get_detected_radar_tracks(CP)
 
-          assert not CP.radarUnavailable
+          assert CP.radarUnavailable == (radar_spec.source_kind != "radar")
           assert len(radar_tracks) == 1
           assert radar_tracks[0].spec == radar_spec
           assert radar_tracks[0].bus == bus

@@ -108,9 +108,15 @@ RADAR_602_617 = HyundaiRadarTrackSpec(
   frequency=10, message_size=8,
 )
 
-HYUNDAI_RADAR_TRACK_SPECS = (RADAR_500_53F, RADAR_210_21F, RADAR_235_248, RADAR_3A5_3C4, RADAR_602_617)
+RADAR_238_255 = HyundaiRadarTrackSpec(
+  "RADAR_238_255", 0x238, 30, ("",), ("LONG_DIST", "LAT_DIST", "OBJECT_SPEED", "OBJECT_ID"),
+  frequency=33, message_size=8, source_kind="camera", required_msg_count=24,
+)
+
+HYUNDAI_RADAR_TRACK_SPECS = (RADAR_238_255, RADAR_500_53F, RADAR_210_21F, RADAR_235_248, RADAR_3A5_3C4, RADAR_602_617)
 DEFAULT_RADAR_TRIGGER_MSG = max(rt.end_addr for rt in HYUNDAI_RADAR_TRACK_SPECS)
 RADAR_TRACK_SPEC_BY_ADDR = {addr: spec for spec in HYUNDAI_RADAR_TRACK_SPECS for addr in spec.address_range}
+RADAR_TRACK_SPEC_BY_ADDR_SIZE = {(addr, spec.message_size): spec for spec in HYUNDAI_RADAR_TRACK_SPECS for addr in spec.address_range}
 
 DETECTED_RADAR_TRACKS: dict[str, tuple[HyundaiRadarTrackConfig, ...]] = {}
 
@@ -142,11 +148,21 @@ def get_detected_radar_tracks(CP) -> tuple[HyundaiRadarTrackConfig, ...]:
 
 def get_radar_can_parser(radar_track: HyundaiRadarTrackConfig) -> CANParser:
   messages = [(f"RADAR_TRACK_{addr:x}", radar_track.spec.frequency) for addr in radar_track.address_range]
-  return CANParser(radar_track.spec.dbc_name, messages, radar_track.bus, signals=set(radar_track.spec.signals))
+  return CANParser(radar_track.spec.dbc_name, messages, radar_track.bus, signals=None if radar_track.spec == RADAR_238_255 else set(radar_track.spec.signals))
+
+
+def get_camera_track_msg(radar_parser: HyundaiRadarParserConfig, addr: int):
+  msg = radar_parser.parser.vl[f"RADAR_TRACK_{addr:x}"]
+  if radar_parser.spec != RADAR_238_255 or (addr - 0x238) % 3:
+    return msg
+  if radar_parser.end_addr == RADAR_238_255.required_end_addr:
+    return {"LONG_DIST": msg["LONG_DIST_B"], "LAT_DIST": msg["LAT_DIST_B"], "OBJECT_ID": msg["OBJECT_ID_B"],
+            "OBJECT_SPEED": msg["REL_SPEED_B"]}
+  return msg
 
 
 def get_track_storage_key(radar_spec: HyundaiRadarTrackSpec, addr: int, track_prefix: str) -> HyundaiRadarTrackKey:
-  if radar_spec.name in ("RADAR_500_53F", "RADAR_235_248", "RADAR_3A5_3C4"):
+  if radar_spec.name in ("RADAR_500_53F", "RADAR_235_248", "RADAR_3A5_3C4", "RADAR_238_255"):
     return (radar_spec.name, addr)
 
   track_index = int(track_prefix[0]) - 1
@@ -154,6 +170,8 @@ def get_track_storage_key(radar_spec: HyundaiRadarTrackSpec, addr: int, track_pr
 
 
 def get_track_ts_nanos(parser: CANParser, msg_name: str, radar_spec: HyundaiRadarTrackSpec, track_prefix: str) -> int:
+  if radar_spec.name == "RADAR_238_255":
+    return parser.ts_nanos[msg_name].get("LONG_DIST", 0)
   if radar_spec.name == "RADAR_602_617":
     return parser.ts_nanos[msg_name][f"{track_prefix}DISTANCE"]
   if radar_spec.name in ("RADAR_210_21F", "RADAR_235_248"):
@@ -162,6 +180,8 @@ def get_track_ts_nanos(parser: CANParser, msg_name: str, radar_spec: HyundaiRada
 
 
 def decode_radar_track(radar_spec: HyundaiRadarTrackSpec, track_msg, track_prefix: str) -> tuple[float, float, float]:
+  if radar_spec.name == "RADAR_238_255":
+    return track_msg["LONG_DIST"], track_msg["LAT_DIST"], track_msg["OBJECT_SPEED"]
   if radar_spec.name == "RADAR_602_617":
     return (
       track_msg[f"{track_prefix}DISTANCE"],
@@ -225,6 +245,9 @@ def is_radar_track_valid(radar_spec: HyundaiRadarTrackSpec, track_msg, track_pre
   if radar_spec.name == "RADAR_602_617":
     return 0 < track_msg[f"{track_prefix}DISTANCE"] < 255.75
 
+  if radar_spec.name == "RADAR_238_255":
+    return track_msg.get("LONG_DIST", 0) > 0 and track_msg.get("OBJECT_ID", 0) != 0
+
   if radar_spec.name == "RADAR_235_248":
     return int(track_msg["OBJECT_ID"]) != 0
 
@@ -250,6 +273,11 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     self.radar_off_can = True
     self.rcp: CANParser | None = None
     self._radar_mode: int | None = None
+    # Legacy camera speed is an absolute-speed candidate. Read wheel speed
+    # independently; never reinterpret it as relative speed at startup.
+    self.camera_ego_parser = CANParser("hyundai_can_generated", [("WHL_SPD11", 0)], 0)
+    self.camera_ego_speed: float | None = None
+    self.camera_object_ids: dict[HyundaiRadarTrackKey, int] = {}
 
     if CP_SP.flags & HyundaiFlagsSP.RADAR_FULL_RADAR:
       radar_mode = RadarType.FULL_RADAR
@@ -265,7 +293,7 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     for _, can_messages in can_strings:
       for raw_addr, dat, raw_bus in can_messages:
         addr, bus = int(raw_addr), int(raw_bus)
-        spec = RADAR_TRACK_SPEC_BY_ADDR.get(addr)
+        spec = RADAR_TRACK_SPEC_BY_ADDR_SIZE.get((addr, len(dat)))
         if spec is None or bus not in RADAR_TRACK_BUSES or len(dat) != spec.message_size:
           continue
 
@@ -368,6 +396,13 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
       self.updated_messages.clear()
       return rr
 
+    if 0x386 in self.camera_ego_parser.update(can_strings):
+      wheels = self.camera_ego_parser.vl["WHL_SPD11"]
+      self.camera_ego_speed = sum(wheels[f"WHL_SPD_{wheel}"] for wheel in ("FL", "FR", "RL", "RR")) / 14.4
+    latest_timestamp = max((timestamp for timestamp, _ in can_strings), default=0)
+    wheel_timestamp = self.camera_ego_parser.ts_nanos["WHL_SPD11"]["WHL_SPD_FL"]
+    if latest_timestamp - wheel_timestamp > 500_000_000:
+      self.camera_ego_speed = None
     self._discover_radar_parsers(can_strings)
     radar_cycle_complete = False
     for radar_parser in self.radar_parsers:
@@ -429,7 +464,7 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
         continue
 
       msg_name = f"RADAR_TRACK_{addr:x}"
-      msg = radar_parser.parser.vl[msg_name]
+      msg = get_camera_track_msg(radar_parser, addr)
       for track_prefix in radar_parser.spec.track_prefixes:
         if get_track_ts_nanos(radar_parser.parser, msg_name, radar_parser.spec, track_prefix) == 0:
           continue
@@ -481,12 +516,17 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     track_count = 0
     for addr in radar_parser.address_range:
       msg_name = f"RADAR_TRACK_{addr:x}"
-      msg = radar_parser.parser.vl[msg_name]
+      msg = get_camera_track_msg(radar_parser, addr)
       for track_prefix in radar_parser.spec.track_prefixes:
         track_key = get_track_storage_key(radar_parser.spec, addr, track_prefix)
         if get_track_ts_nanos(radar_parser.parser, msg_name, radar_parser.spec, track_prefix) != 0 and \
            is_radar_track_valid(radar_parser.spec, msg, track_prefix):
           track_count += 1
+          if radar_parser.spec == RADAR_238_255:
+            object_id = int(msg["OBJECT_ID"])
+            if self.camera_object_ids.get(track_key) != object_id:
+              self.pts.pop(track_key, None)
+              self.camera_object_ids[track_key] = object_id
           if track_key not in self.pts:
             self.pts[track_key] = structs.RadarData.RadarPoint()
             self.pts[track_key].trackId = self.track_id
@@ -497,7 +537,7 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
           pt = self.pts[track_key]
           pt.dRel = d_rel
           pt.yRel = y_rel
-          pt.vRel = v_rel
+          pt.vRel = v_rel - self.camera_ego_speed if radar_parser.spec == RADAR_238_255 and full_variant else v_rel
           has_track_metadata = radar_parser.spec.name in ("RADAR_210_21F", "RADAR_235_248", "RADAR_3A5_3C4")
           if radar_parser.spec.name == "RADAR_500_53F":
             pt.motionState = 2 if full_variant and int(msg["ONCOMING_ESR"]) else 0
@@ -533,6 +573,10 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
 
       for radar_parsers in radar_parsers_by_spec.values():
         active_radar_parser = self._select_active_radar_parser(radar_parsers)
+        if active_radar_parser.spec == RADAR_238_255 and active_radar_parser.end_addr == RADAR_238_255.end_addr and \
+           self.camera_ego_speed is None:
+          self.pts = {key: pt for key, pt in self.pts.items() if key[0] != RADAR_238_255.name}
+          continue
         active_radar_parsers.append(active_radar_parser)
         track_count = self._update_radar_points_from_parser(active_radar_parser)
         active_radar_sources.append((active_radar_parser, track_count))
