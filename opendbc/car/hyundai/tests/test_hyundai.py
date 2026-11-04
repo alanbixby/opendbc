@@ -318,6 +318,31 @@ class TestHyundaiFingerprint(unittest.TestCase):
     for signal, expected in values.items():
       assert abs(decoded[signal] - expected) < 1e-6
 
+  def test_630_captured_selected_objects(self):
+    parser = CANParser("hyundai_selected_objects_630_63d_generated", [
+      ("SELECTED_OBJECT_630", 33), ("SELECTED_OBJECT_632", 33), ("SELECTED_OBJECT_638", 33),
+    ], 1)
+    # Ioniq ac27c9808ac91710/00000002--e0aab81e4d, segment 2.
+    assert parser.update([(1, [(0x630, bytes.fromhex("b4e3122ce1ca0119"), 1)])]) == {0x630}
+    msg = parser.vl[0x630]
+    assert abs(msg["DISTANCE_CANDIDATE"] - 23.7) < 1e-6
+    assert abs(msg["REL_SPEED_CANDIDATE"] - 1.51) < 1e-6
+    assert abs(msg["LAT_POSITION_CANDIDATE"] - -2.7) < 1e-6
+    # K7 74fbff45aa20fe9e/00000010--6f173d5799, segment 3; 500 speed -15.33.
+    assert parser.update([(2, [(0x638, bytes.fromhex("c8cd409b200702e3"), 1)])]) == {0x638}
+    assert abs(parser.vl[0x638]["REL_SPEED_CANDIDATE"] - -15.30) < 1e-6
+    # Ioniq PHEV 518f8ad60a03f394/00000016--e0300496c8, segment 5; 500 speed -25.15.
+    assert parser.update([(3, [(0x632, bytes.fromhex("a052c4e21f030265"), 1)])]) == {0x632}
+    assert abs(parser.vl[0x632]["REL_SPEED_CANDIDATE"] - -25.26) < 1e-6
+
+  def test_630_odd_message_is_raw(self):
+    parser = CANParser("hyundai_selected_objects_630_63d_generated", [("AUXILIARY_RAW_631", 33)], 1)
+    # Ioniq ac27c9808ac91710/00000002--e0aab81e4d, segment 1.
+    data = bytes.fromhex("000005ff03000029")
+    assert parser.update([(1, [(0x631, data, 1)])]) == {0x631}
+    assert parser.vl[0x631]["UNKNOWN_PAYLOAD"] == int.from_bytes(data[:7], "little")
+    assert parser.vl[0x631]["UNKNOWN_BYTE_7"] == 0x29
+
   def test_radar_210_signal_layout(self):
     packer = CANPacker(RADAR_210_21F.dbc_name)
     parser = CANParser(RADAR_210_21F.dbc_name, [("RADAR_TRACK_210", RADAR_210_21F.frequency)], 1)
