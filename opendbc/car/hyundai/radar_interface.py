@@ -12,6 +12,7 @@ from opendbc.sunnypilot.car.hyundai.values import HyundaiFlagsSP, RadarType
 RADAR_TRACK_BUSES = (0, 1, 2)
 RADAR_CADENCE_TOLERANCE = 0.25
 RADAR_FRESH_CYCLE_PERIODS = 3
+MOBIS_DETECTION_ADDRS = range(0x510, 0x520)
 
 
 # POC for parsing corner radars: https://github.com/commaai/openpilot/pull/24221/
@@ -55,6 +56,7 @@ class HyundaiRadarTrackConfig:
   spec: HyundaiRadarTrackSpec
   bus: int
   end_addr: int
+  has_mobis_detections: bool = False
 
   @property
   def address_range(self) -> range:
@@ -128,7 +130,9 @@ def detect_radar_tracks(fingerprint: dict[int, dict[int, int]]) -> tuple[Hyundai
         full_range_matches = all(addr in bus_fingerprint for addr in radar_spec.address_range)
       if required_range_matches:
         end_addr = radar_spec.end_addr if full_range_matches else radar_spec.required_end_addr
-        detected.append(HyundaiRadarTrackConfig(radar_spec, bus, end_addr))
+        has_mobis_detections = radar_spec == RADAR_210_21F and isinstance(bus_fingerprint, dict) and \
+          all(bus_fingerprint.get(addr) == 64 for addr in MOBIS_DETECTION_ADDRS)
+        detected.append(HyundaiRadarTrackConfig(radar_spec, bus, end_addr, has_mobis_detections))
   return tuple(detected)
 
 
@@ -199,12 +203,17 @@ def decode_radar_track(radar_spec: HyundaiRadarTrackSpec, track_msg, track_prefi
   )
 
 
+def is_compact_radar_track(track_msg, track_prefix: str) -> bool:
+  return int(track_msg[f"{track_prefix}STATE"]) == 0 and int(track_msg[f"{track_prefix}STATE_ALT"]) in (2, 3)
+
+
 def get_radar_track_state(radar_spec: HyundaiRadarTrackSpec, track_msg, track_prefix: str) -> int:
   state = int(track_msg[f"{track_prefix}STATE"])
   if radar_spec.name == "RADAR_210_21F" and state == 0:
     # Compact-dialect platforms leave detailed STATE zero and use the shared
     # compressed lifecycle field instead.
-    return {0: 0, 1: 1, 2: 3, 3: 4}[int(track_msg[f"{track_prefix}STATE_ALT"])]
+    state_alt = int(track_msg[f"{track_prefix}STATE_ALT"])
+    return state_alt + 1 if is_compact_radar_track(track_msg, track_prefix) else state_alt
   return state
 
 
@@ -239,6 +248,10 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
     detected_tracks = get_detected_radar_tracks(CP)
     self.radar_tracks_available = bool(detected_tracks)
     self.radar_tracks = detected_tracks
+    # Freeze the companion signature from the fingerprint. It completed within
+    # 50 ms on every validated Mobis capture. Late-only companions conservatively
+    # stay unflipped: discovering them live would change existing tracks' axes.
+    self.mobis_detection_buses = frozenset(rt.bus for rt in detected_tracks if rt.has_mobis_detections)
     self.radar_parsers = tuple(HyundaiRadarParserConfig(rt.spec, rt.bus, rt.end_addr, get_radar_can_parser(rt))
                                for rt in self.radar_tracks)
     self.seen_radar_addrs = {(rt.spec.name, rt.bus): set(rt.address_range) for rt in detected_tracks}
@@ -479,6 +492,7 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
 
   def _update_radar_points_from_parser(self, radar_parser: HyundaiRadarParserConfig) -> int:
     track_count = 0
+    has_mobis_companion = radar_parser.spec == RADAR_210_21F and radar_parser.bus in self.mobis_detection_buses
     for addr in radar_parser.address_range:
       msg_name = f"RADAR_TRACK_{addr:x}"
       msg = radar_parser.parser.vl[msg_name]
@@ -496,6 +510,8 @@ class RadarInterface(RadarInterfaceBase, RadarInterfaceExt):
           d_rel, y_rel, v_rel = decode_radar_track(radar_parser.spec, msg, track_prefix)
           pt = self.pts[track_key]
           pt.dRel = d_rel
+          if has_mobis_companion and is_compact_radar_track(msg, track_prefix):
+            y_rel = -y_rel if y_rel else 0.0
           pt.yRel = y_rel
           pt.vRel = v_rel
           has_track_metadata = radar_parser.spec.name in ("RADAR_210_21F", "RADAR_235_248", "RADAR_3A5_3C4")
