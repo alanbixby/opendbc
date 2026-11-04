@@ -7,7 +7,7 @@ def generate():
     geometry = (addr - 0x238) % 3 == 0
     parts.append(f"\nBO_ {addr} RADAR_TRACK_{addr:x}: 8 CAMERA\n")
     if geometry:
-      parts.append(f'CM_ BO_ {addr} "Publish only with confirmed dialect, 3 consistent cycles, range <=120 m, and fresh A ego speed.";\n')
+      parts.append(f'CM_ BO_ {addr} "ID-keyed camera: confirmed dialect, 3 cycles, <=120 m, fresh A ego speed; FULL_RADAR feeds radard.";\n')
       parts.append(''' SG_ LONG_DIST_B : 15|13@0+ (0.05,0) [0|409.55] "m" XXX
  SG_ LAT_DIST_B : 45|10@0- (0.05,0) [-25.6|25.55] "m" XXX
  SG_ REL_SPEED_B : 18|11@0+ (0.1,-100) [-100|104.7] "m/s" XXX
@@ -23,7 +23,7 @@ def generate():
         ("LONG_DIST_B", "High confidence 24-message dialect distance; shared triplet structure, different packing from 30-message dialect."),
         ("REL_SPEED_B", "High confidence relative speed: 0.1 m/s, offset -100, fitted to persistent-object distance derivatives on Niro EV and Niro PHEV."),
         ("LAT_DIST_B", "Validated left-positive lateral position. Rail values -25.6 and >=25.5 are invalid."),
-        ("OBJECT_ID_B", "Validated six-bit persistent object identity. Zero is a REAL B ID; empty slots have LONG_DIST_B=0."),
+        ("OBJECT_ID_B", "Persistent six-bit B ID; zero is REAL, empty slots have LONG_DIST_B=0. Upper boundary unexercised."),
         ("COUNTER_B", "High confidence 24-message dialect counter in low two bits of byte zero."),
         ("LONG_DIST", "High confidence geometry: leading 13 bits follow the vision lead. Range beyond nearby objects is less accurate than radar."),
         ("LAT_DIST", "High confidence sign/scale from vision: left positive. Upper boundary unexercised."),
