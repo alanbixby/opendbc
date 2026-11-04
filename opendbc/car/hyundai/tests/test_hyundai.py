@@ -471,7 +471,7 @@ class TestHyundaiFingerprint(unittest.TestCase):
         for cycle in range(4):
           values = {"1_STATE": 0, "1_STATE_ALT": 2, "1_LONG_DIST": 40, "1_LAT_DIST": -3.65, "1_REL_SPEED": -3}
           if cycle >= 2:
-            # A newly populated detailed neighbour cannot change an existing
+            # A newly populated detailed neighbor cannot change an existing
             # compact target's coordinate convention or identity.
             values.update({"2_STATE": 3, "2_STATE_ALT": 2, "2_LONG_DIST": 50, "2_LAT_DIST": 2})
           frames = [packer.make_can_msg(f"RADAR_TRACK_{a:x}", 2, {**(values if a == 0x210 else {}), "COUNTER": cycle})
