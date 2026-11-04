@@ -70,6 +70,10 @@ class RadarInterface(RadarInterfaceBase):
     if self.radar_wrong_config:
       ret.errors.wrongConfig = True
 
+    # Nidec radar tracks stay active with openpilot longitudinal (validated on Clarity routes).
+    ret.radarTracksAvailable = True
+    ret.trackSources = [{"startAddress": 0x430, "endAddress": 0x445, "bus": 1, "trackCount": len(self.pts)}]
+
     ret.points = list(self.pts.values())
 
     return ret
