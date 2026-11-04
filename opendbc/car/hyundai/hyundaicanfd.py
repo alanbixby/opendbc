@@ -250,4 +250,7 @@ def hkg_can_fd_checksum(address: int, sig, d: bytearray) -> int:
     crc ^= 0x819D
   elif len(d) == 32:
     crc ^= 0x9F5B
+  elif len(d) == 64:
+    # validated on the 0x510-0x51F radar detection blocks only
+    crc ^= 0xB8CD
   return crc
